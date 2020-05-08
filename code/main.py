@@ -1,5 +1,7 @@
 import os
 import json
+import yaml as YAML
+from utils import ConfigurationException
 
 # from azureml.core import Workspace, Experiment, Run
 # from azureml.core.authentication import ServicePrincipalAuthentication
@@ -16,6 +18,8 @@ def main():
     # Loading input values
     print("::debug::Loading input values")
     experiment_name = os.environ.get("INPUT_EXPERIMENT_NAME", default=None)
+    if experiment_name is None:
+        raise ConfigurationException("No input string provided.")
     # run_id = os.environ.get("INPUT_RUN_ID", default=None)
 
     # # Loading azure credentials
