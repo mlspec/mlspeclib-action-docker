@@ -1,0 +1,28 @@
+name: "MLSpec Generic Action"
+description: "Execute a generic mlspec based action."
+author: "aronchick"
+inputs:
+  workflow_id:
+    description: "Unique ID for the workflow to which this step belongs."
+    required: True
+  step_name:
+    description: "Unique step name for in this workflow."
+    required: True
+  previous_step_run_id:
+    description: "Unique identifier for the previous step's output."
+    required: True
+  execution_parameters:
+    description: "YAML or JSON that represents the execution parameters for this step."
+    required: True
+  run_id:
+    description: "Unique run_id for this workflow. (Ignored if provided by the previous step)"
+    required: true
+outputs:
+  output_id:
+    description: "Unique id for the output metadata."
+branding:
+  icon: "chevron-up"
+  color: "blue"
+runs:
+  using: "docker"
+  image: "Dockerfile"
