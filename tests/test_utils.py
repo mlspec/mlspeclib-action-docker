@@ -5,9 +5,6 @@ import unittest
 myPath = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(myPath, "..", "code"))
 
-# from utils import validate_json, AMLConfigurationException
-# from schemas import parameters_schema
-
 
 # def test_validate_json_valid_inputs():
 #     """

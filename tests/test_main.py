@@ -5,8 +5,8 @@ import unittest
 myPath = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(myPath, "..", "code"))
 
-from main import main
-from utils import ConfigurationException
+from main import main # noqa
+from utils import ConfigurationException  # noqa
 
 
 class HelpersTestSuite(unittest.TestCase):

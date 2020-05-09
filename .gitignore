@@ -131,3 +131,5 @@ dmypy.json
 .vs/
 
 mlspeclib-docker/
+tests/env_variables.yaml
+tests/.parameters/execution_parameters.yaml

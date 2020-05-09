@@ -1,8 +1,25 @@
 import mlspeclib
+import logging
 
 
 class ConfigurationException(Exception):
     pass
+
+
+def report_found_params(expected_params: list, offered_params: dict) -> None:
+    for param in expected_params:
+        if param not in offered_params or offered_params[param] is None:
+            raise ValueError(f"No parameter set for {param}.")
+        else:
+            logging.debug(f"Found value for {param}.")
+
+def raise_schema_mismatch(expected_type: str, expected_version: str, actual_type: str, actual_version: str):
+    raise ValueError(f"""Actual data does not match the expected schema and version:
+    Expected Type: {expected_type}
+    Actual Type: {actual_type}
+
+    Expected Version: {expected_version}
+    Actual Version: {actual_version}")""")
 
 
 # def get_best_run(experiment, run, pipeline_child_run_name=None):
