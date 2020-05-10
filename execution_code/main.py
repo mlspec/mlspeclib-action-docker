@@ -1,7 +1,6 @@
 import os
 import json
 import yaml as YAML
-from execution_code.utils import ConfigurationException, report_found_params, raise_schema_mismatch
 import logging
 from box import Box
 from pathlib import Path
@@ -9,17 +8,22 @@ import pdb
 import debugpy
 import sys
 from io import StringIO
-import execution_code.step_execution
-
 import datetime
 import uuid
 
 from mlspeclib import MLObject, MLSchema
 from mlspeclib.experimental.metastore import Metastore
 
-def test_executor():
-    main()
+sys.path.append(str(Path.cwd()))
+logger = logging.getLogger()
+logger.debug(sys.path)
 
+from execution_code.utils import (
+    ConfigurationException,
+    report_found_params,
+    raise_schema_mismatch,
+)
+from execution_code.step_execution import step_execution
 
 def main():
 
@@ -190,7 +194,19 @@ def main():
     all_items = ms.get_all_runs(workflow_object.schema_version, step_name)
     rootLogger.debug(f"Number of metadata in step: {len(list(all_items))}")
 
-    results_ml_object = step_execution(input_object, execution_object)
+    step_execution_object = step_execution(input_object, execution_object)
+    results_ml_object = step_execution_object.execute(
+        result_object_schema_type=workflow_object.steps[step_name].output.schema_type,
+        result_object_schema_version=workflow_object.steps[
+            step_name
+        ].output.schema_version,
+    )
+
+    results_ml_object.run_id = parameters.GITHUB_RUN_ID
+    results_ml_object.step_id = uuid.uuid4()
+    results_ml_object.run_date = datetime.datetime.now()
+
+    errors = results_ml_object.validate()
 
     ms.save(results_ml_object, workflow_object.schema_version, step_name, "output")
 
@@ -200,12 +216,15 @@ def main():
     log_contents = buffer.getvalue()
 
     log_object = MLObject()
-    log_object.set_type(schema_type='0.1.0', schema_version='log')
+    log_object.set_type(schema_version="0.1.0", schema_type="log")
     log_object.run_id = parameters.GITHUB_RUN_ID
     log_object.step_name = step_name
     log_object.run_date = datetime.datetime.now()
-    log_object.raw_log = log_contents
+    log_object.raw_log = "NO RAW LOGS YET (NEED TO FIGURE OUT WHERE I CAN PUSH A LARGE OBJECT)"
+    # log_object.raw_log = log_contents
     log_object.log_property_bag = {}
+
+    errors = log_object.validate()
 
     ms.save(log_object, workflow_object.schema_version, step_name, "log")
 
