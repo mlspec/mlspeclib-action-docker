@@ -65,5 +65,5 @@ class step_execution:
         results_object.data_schemas_path = return_dict["data_schemas_path"]
         results_object.feature_file_path = return_dict["feature_file_path"]
 
-        errors = results_object.validate()
+        errors = results_object.validate() # noqa
         return results_object

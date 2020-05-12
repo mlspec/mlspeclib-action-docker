@@ -1,0 +1,13 @@
+steps:
+# - name: 'gcr.io/cloud-builders/docker'
+#   args: ['build', '-t', 'gcr.io/scorpio-216915/mlspeclibdocker', '.']
+- name: 'gcr.io/kaniko-project/executor:latest'
+  args:
+  - --destination=gcr.io/scorpio-216915/mlspeclibdocker
+  - --cache=true
+  - --cache-ttl=168h
+- name: 'gcr.io/cloud-builders/docker'
+  args: ['push', 'gcr.io/scorpio-216915/mlspeclibdocker']
+
+# gcloud builds submit --tag=gcr.io/scorpio-216915/mlspeclibdocker .
+# gcloud builds submit --config cloudbuild.yaml --tag=gcr.io/scorpio-216915/mlspeclibdocker --substitutions CACHEBUST=1 .

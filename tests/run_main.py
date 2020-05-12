@@ -6,9 +6,13 @@ import uuid
 import debugpy
 from io import StringIO
 import sys
+
 sys.path.append(str(Path.cwd().resolve()))
-import execution_code
-from execution_code.main import main
+import execution_code  # noqa
+from execution_code.main import main  # noqa
+
+RUN_TYPES = ["main", "entrypoint.sh", "container interactive"]
+RUN_TYPE = RUN_TYPES[2]
 
 rootLogger = logging.getLogger()
 rootLogger.setLevel(logging.DEBUG)
@@ -22,7 +26,7 @@ rootLogger.addHandler(bufferHandler)
 
 stdout_handler = logging.StreamHandler(sys.stdout)
 stdout_handler.setLevel(logging.DEBUG)
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 stdout_handler.setFormatter(formatter)
 rootLogger.addHandler(stdout_handler)
 
@@ -31,10 +35,10 @@ for i in os.environ:
     rootLogger.debug(f"{i}:\t{os.environ.get(i)}")
 
 parameters = {}
-parameters = YAML.safe_load((Path("tests") / "env_variables.yaml").read_text())
+parameters = YAML.safe_load((Path("tests") / "env_variables.yaml").read_text('utf-8'))
 parameters["INPUT_input_parameters"] = (
     Path("tests") / "schemas" / "datasource.yaml"
-).read_text()
+).read_text('utf-8')
 
 for param in parameters:
     rootLogger.debug(f"{i}:\t{param}")
@@ -54,7 +58,28 @@ os.environ["VSCODE_DEBUGGING"] = "True"
 rootLogger.debug(os.environ)
 bar = buffer.getvalue()
 
-#main()
-# p = Path.cwd().resolve
-os.system(str(Path.cwd() / 'execution_code' / 'entrypoint.sh'))
+if RUN_TYPE == "main":
+    main()
+elif RUN_TYPE == "entrypoint.sh":
+    p = Path.cwd().resolve
+    os.system(str(Path.cwd() / "execution_code" / "entrypoint.sh"))
+elif RUN_TYPE == "container interactive":
+    environment_vars = ""
+    os.environ.pop('ENTRYPOINT_OVERRIDE')
+    parameters['GITHUB_RUN_ID'] = os.environ["GITHUB_RUN_ID"]
+    parameters["GITHUB_WORKSPACE"] = '/execution_code'
+    parameters['INPUT_schemas_directory'] = '/execution_code/workflow_schemas'
+    parameters['INPUT_execution_parameters'] = '/execution_code/execution_parameters.yaml'
 
+    for param in parameters:
+        if param == 'ENTRYPOINT_OVERRIDE':
+            continue
+        if isinstance(parameters[param], dict):
+            env_value = YAML.safe_dump(parameters[param])
+        else:
+            env_value = parameters[param]
+        environment_vars += f' -e "{param}={env_value}"'
+
+    exec_statement = f"docker run -it {environment_vars} --entrypoint /bin/bash gcr.io/scorpio-216915/mlspeclibdocker"
+    print(exec_statement)
+    os.system(exec_statement)

@@ -22,8 +22,8 @@ from execution_code.utils import (
     ConfigurationException,
     report_found_params,
     raise_schema_mismatch,
-)
-from execution_code.step_execution import step_execution
+) # noqa
+from execution_code.step_execution import step_execution # noqa
 
 def main():
 
@@ -92,13 +92,15 @@ def main():
     # Loading parameters file
     rootLogger.debug("::debug::Loading parameters file")
     execution_parameters_file = os.environ.get(
-        "INPUT_PARAMETERS_FILE", default="execution_parameters.yaml"
+        "INPUT_execution_parameters", default="execution_parameters.yaml"
     )
     execution_parameters_file_path = (
         Path(parameters.GITHUB_WORKSPACE) / ".parameters" / execution_parameters_file
     )
+
+    execution_parameters = {}
     try:
-        execution_parameters = execution_parameters_file_path.read_text()
+        execution_parameters = execution_parameters_file_path.read_text('utf-8')
     except FileNotFoundError:
         print(
             f"::debug::Could not find parameter file in {execution_parameters_file_path}. Please provide a parameter file in your repository if you do not want to use default settings (e.g. .parameters/execution_parameters.yaml)."
