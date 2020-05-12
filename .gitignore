@@ -129,6 +129,7 @@ dmypy.json
 # Pyre type checker
 .pyre/
 .vs/
+.vscode/
 
 mlspeclib-docker/
 tests/env_variables.yaml
