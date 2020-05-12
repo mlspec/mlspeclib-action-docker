@@ -27,13 +27,11 @@ RUN python3 -m pip install --no-cache-dir -r /requirements.txt
 
 ARG SECONDCACHEBUST=1
 
-RUN mkdir /execution_code
-WORKDIR /execution_code
+RUN mkdir /src
+WORKDIR /src
 
-COPY tests/.parameters/ .
+COPY .parameters/ .parameters
 
-COPY tests/workflow_schemas/ workflow_schemas
-
-COPY ./execution_code/. /execution_code/
+COPY ./src/. /src/
 
 ENTRYPOINT [". ./entrypoint.sh"]

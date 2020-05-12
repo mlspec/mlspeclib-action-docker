@@ -11,11 +11,10 @@
 *
 mlspeclib-docker
 tests
-execution_code/__*
+src/__*
 
 #####
 !requirements.txt
-!execution_code/*.py
-!execution_code/*.sh
-!tests/.parameters/execution_parameters.yaml
-!tests/workflow_schemas
+!src/*.py
+!src/*.sh
+!.parameters

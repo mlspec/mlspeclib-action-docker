@@ -6,7 +6,7 @@ set -e
 
 # Allows for overriding the entrypoint script (usually for testing purposes)
 if [ -z ${ENTRYPOINT_OVERRIDE+x} ]; then
-    python3 /execution_code/main.py
+    python3 /src/main.py
 else
     if [ -z ${VSCODE_DEBUGGING+x} ]; then
         # python3 $ENTRYPOINT_OVERRIDE

@@ -8,8 +8,8 @@ from io import StringIO
 import sys
 
 sys.path.append(str(Path.cwd().resolve()))
-import execution_code  # noqa
-from execution_code.main import main  # noqa
+import src  # noqa
+from src.main import main  # noqa
 
 RUN_TYPES = ["main", "entrypoint.sh", "container interactive"]
 RUN_TYPE = RUN_TYPES[2]
@@ -37,7 +37,7 @@ for i in os.environ:
 parameters = {}
 parameters = YAML.safe_load((Path("tests") / "env_variables.yaml").read_text('utf-8'))
 parameters["INPUT_input_parameters"] = (
-    Path("tests") / "schemas" / "datasource.yaml"
+    Path(".parameters") / "input" / "datasource.yaml"
 ).read_text('utf-8')
 
 for param in parameters:
@@ -62,14 +62,15 @@ if RUN_TYPE == "main":
     main()
 elif RUN_TYPE == "entrypoint.sh":
     p = Path.cwd().resolve
-    os.system(str(Path.cwd() / "execution_code" / "entrypoint.sh"))
+    os.system(str(Path.cwd() / "src" / "entrypoint.sh"))
 elif RUN_TYPE == "container interactive":
     environment_vars = ""
     os.environ.pop('ENTRYPOINT_OVERRIDE')
     parameters['GITHUB_RUN_ID'] = os.environ["GITHUB_RUN_ID"]
-    parameters["GITHUB_WORKSPACE"] = '/execution_code'
-    parameters['INPUT_schemas_directory'] = '/execution_code/workflow_schemas'
-    parameters['INPUT_execution_parameters'] = '/execution_code/execution_parameters.yaml'
+    parameters["GITHUB_WORKSPACE"] = '/src'
+    parameters['INPUT_parameters_directory'] = '.parameters'
+    parameters['INPUT_schemas_directory'] = 'schemas'
+    parameters['INPUT_execution_parameters'] = 'execution/execution_parameters.yaml'
 
     for param in parameters:
         if param == 'ENTRYPOINT_OVERRIDE':

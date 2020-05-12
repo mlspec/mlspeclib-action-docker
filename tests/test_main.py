@@ -3,23 +3,35 @@ import sys
 import io
 import unittest
 import logging
+from pathlib import Path
 from unittest.mock import patch
 import yaml as YAML
+import gremlin_python
+from gremlin_python.driver import client
+import mlspeclib.experimental.metastore
+from mlspeclib import MLObject
+from collections import namedtuple
 
 myPath = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(myPath, "..", "code"))
+sys.path.insert(0, os.path.join(myPath, "..", "src"))
 
-from execution_code.main import (
+from src.main import (
     main,
     setupLogger,
     convert_environment_variables_to_dict,
     report_found_params,
+    verify_parameters_folder_and_file_exist,
+    load_metastore_connection,
+    load_workflow_object,
+    load_contract_object,
+    load_contract_object,
 )  # noqa
-from execution_code.utils import ConfigurationException  # noqa
+
+from src.utils import ConfigurationException  # noqa
 
 
-class HelpersTestSuite(unittest.TestCase):
-    """Helpers test cases."""
+class test_main(unittest.TestCase):
+    """Main test cases."""
 
     def test_main_no_input(self):
         """
@@ -47,6 +59,7 @@ class HelpersTestSuite(unittest.TestCase):
         mock_variables = """\
             INPUT_workflow_id: '0.0.1'
             INPUT_step_name: 'process_data'
+            INPUT_parameters_directory: '.parameters'
             INPUT_execution_parameters: 'tests/execution_parameters.yaml'
             INPUT_schemas_directory: 'tests/workflow_schemas'
             INPUT_input_parameters: 'input_parameters'
@@ -72,21 +85,161 @@ class HelpersTestSuite(unittest.TestCase):
 
         self.assertTrue(string_name in str(context.exception))
 
-    # def test_main_invalid_azure_credentials():
-    #     os.environ["INPUT_AZURE_CREDENTIALS"] = ""
-    #     with pytest.raises(AMLConfigurationException):
-    #         assert main()
+    def test_verify_parameters_folder_and_file_exists(self):
+        with patch.object(Path, "exists") as mock_exists:
+            mock_exists.return_value = True
+            self.assertTrue(
+                verify_parameters_folder_and_file_exist("foo", "bar", "qaz")
+            )
 
-    # def test_main_invalid_parameters_file():
-    #     os.environ["INPUT_AZURE_CREDENTIALS"] = """{
-    #         'clientId': 'test',
-    #         'clientSecret': 'test',
-    #         'subscriptionId': 'test',
-    #         'tenantId': 'test'
-    #     }"""
-    #     os.environ["INPUT_PARAMETERS_FILE"] = "wrongfile.json"
-    #     with pytest.raises(AMLConfigurationException):
-    #         assert main()
+    def test_connect_to_metastore(self):
+        with patch.object(gremlin_python.driver.client, "Client") as mock_connect:
+            mock_connect.return_value = True
+            cred_dict = {}
+            with self.assertRaises(KeyError) as context:
+                load_metastore_connection(cred_dict)
+            self.assertTrue("url" in str(context.exception))
+
+            cred_dict["url"] = "foo"
+            with self.assertRaises(KeyError) as context:
+                load_metastore_connection(cred_dict)
+            self.assertTrue("key" in str(context.exception))
+
+            cred_dict["key"] = "foo"
+            with self.assertRaises(KeyError) as context:
+                load_metastore_connection(cred_dict)
+            self.assertTrue("database_name" in str(context.exception))
+
+            cred_dict["database_name"] = "foo"
+            with self.assertRaises(KeyError) as context:
+                load_metastore_connection(cred_dict)
+            self.assertTrue("container_name" in str(context.exception))
+
+            cred_dict["container_name"] = "foo"
+
+            self.assertTrue(load_metastore_connection(cred_dict))
+
+    def test_load_workflow_object(self):
+        with patch.object(
+            mlspeclib.experimental.metastore, "Metastore"
+        ) as mock_metastore:
+            mock_metastore.get_workflow_object.return_value = (None, None)
+
+            with self.assertRaises(ValueError) as context:
+                load_workflow_object("0.0.1", mock_metastore)
+
+            self.assertTrue("load workflow" in str(context.exception))
+
+            workflow_object = MLObject()
+            mock_metastore.get_workflow_object.return_value = (workflow_object, None)
+            with self.assertRaises(ValueError) as context:
+                load_workflow_object("0.0.1", mock_metastore)
+            self.assertTrue("field 'steps'" in str(context.exception))
+
+            workflow_object = MLObject()
+            workflow_object.steps = {}
+            mock_metastore.get_workflow_object.return_value = (workflow_object, None)
+            return_object = load_workflow_object("0.0.1", mock_metastore)
+
+            self.assertTrue(isinstance(return_object, MLObject))
+
+    def test_load_contract_object_bad_contract(self):
+        with self.assertRaises(ValueError) as context:
+            load_contract_object(None, None, None, "bad_contract")
+
+        self.assertTrue("bad_contract" in str(context.exception))
+
+    def test_load_contract_object_bad_loading_contract(self):
+        with patch.object(
+            mlspeclib.mlobject.MLObject, "create_object_from_string"
+        ) as mock_mlobject:
+            mock_mlobject.return_value = (None, "error")
+            with self.assertRaises(ValueError) as context:
+                load_contract_object(None, None, None, "input")
+
+            self.assertTrue("validate the contract" in str(context.exception))
+
+    def test_load_contract_object_no_steps(self):
+        with patch.object(
+            mlspeclib.mlobject.MLObject, "create_object_from_string"
+        ) as mock_mlobject:
+            mock_mlobject.return_value = (None, None)
+            with self.assertRaises(ValueError) as context:
+                load_contract_object(None, {"steps": {}}, None, "input")
+
+            self.assertTrue("contain the step" in str(context.exception))
+
+    def test_load_contract_object_no_contract_type(self):
+        with patch.object(
+            mlspeclib.mlobject.MLObject, "create_object_from_string"
+        ) as mock_mlobject:
+            mock_mlobject.return_value = (None, None)
+            with self.assertRaises(ValueError) as context:
+                load_contract_object(
+                    None, {"steps": {"step_name": "NO_CONTRACT"}}, "step_name", "input"
+                )
+
+            self.assertTrue("the contract type" in str(context.exception))
+
+    def test_load_contract_object_schema_type_mismatch(self):
+        with patch.object(
+            mlspeclib.mlobject.MLObject, "create_object_from_string"
+        ) as mock_mlobject:
+            mock_schema_type = namedtuple("Object", ["schema_type", "schema_version"])
+            mock_mlobject.return_value = (
+                mock_schema_type(
+                    schema_type="EXPECTED_TYPE", schema_version="EXPECTED_VERSION"
+                ),
+                None,
+            )
+            with self.assertRaises(ValueError) as context:
+                load_contract_object(
+                    None,
+                    {
+                        "steps": {
+                            "step_name": {
+                                "input": mock_schema_type(
+                                    schema_type="ACTUAL_TYPE",
+                                    schema_version="EXPECTED_VERSION",
+                                )
+                            }
+                        }
+                    },
+                    "step_name",
+                    "input",
+                )
+
+            self.assertTrue("schema and version" in str(context.exception))
+
+    def test_load_contract_object_schema_version_mismatch(self):
+        with patch.object(
+            mlspeclib.mlobject.MLObject, "create_object_from_string"
+        ) as mock_mlobject:
+            mock_schema_type = namedtuple("Object", ["schema_type", "schema_version"])
+            mock_mlobject.return_value = (
+                mock_schema_type(
+                    schema_type="EXPECTED_TYPE", schema_version="EXPECTED_VERSION"
+                ),
+                None,
+            )
+            with self.assertRaises(ValueError) as context:
+                load_contract_object(
+                    None,
+                    {
+                        "steps": {
+                            "step_name": {
+                                "input": mock_schema_type(
+                                    schema_type="EXPECTED_TYPE",
+                                    schema_version="ACTUAL_VERSION",
+                                )
+                            }
+                        }
+                    },
+                    "step_name",
+                    "input",
+                )
+
+            self.assertTrue("schema and version" in str(context.exception))
 
 
 if __name__ == "__main__":
