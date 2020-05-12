@@ -1,4 +1,0 @@
-FROM alpine
-RUN mkdir /.parameters
-COPY tests/.parameters/execution_parameters.yaml /tmp
-ENTRYPOINT /bin/sh

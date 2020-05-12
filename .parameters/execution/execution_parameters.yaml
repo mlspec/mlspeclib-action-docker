@@ -1,0 +1,9 @@
+schema_version: 0.0.1
+schema_type: data_process_run
+base_image: ubuntu1804
+machine_type: NDv2
+nodes: 5
+cpu_per_node: 8
+ram_per_node: 16Gi
+gpu_required: True
+output_root_path: 'https://contoso.s3.us-west-2.amazonaws.com/ml/processed_data'
