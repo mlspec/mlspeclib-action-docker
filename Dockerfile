@@ -34,4 +34,4 @@ COPY .parameters/ .parameters
 
 COPY ./src/. /src/
 
-ENTRYPOINT [". ./entrypoint.sh"]
+ENTRYPOINT ["./entrypoint.sh"]

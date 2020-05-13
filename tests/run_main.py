@@ -11,8 +11,8 @@ sys.path.append(str(Path.cwd().resolve()))
 import src  # noqa
 from src.main import main  # noqa
 
-RUN_TYPES = ["main", "entrypoint.sh", "container interactive"]
-RUN_TYPE = RUN_TYPES[2]
+RUN_TYPES = ["main", "entrypoint.sh", "container interactive", "container pure"]
+RUN_TYPE = RUN_TYPES[3]
 
 rootLogger = logging.getLogger()
 rootLogger.setLevel(logging.DEBUG)
@@ -63,7 +63,7 @@ if RUN_TYPE == "main":
 elif RUN_TYPE == "entrypoint.sh":
     p = Path.cwd().resolve
     os.system(str(Path.cwd() / "src" / "entrypoint.sh"))
-elif RUN_TYPE == "container interactive":
+elif RUN_TYPE == "container interactive" or RUN_TYPE == "container pure":
     environment_vars = ""
     os.environ.pop('ENTRYPOINT_OVERRIDE')
     parameters['GITHUB_RUN_ID'] = os.environ["GITHUB_RUN_ID"]
@@ -81,6 +81,10 @@ elif RUN_TYPE == "container interactive":
             env_value = parameters[param]
         environment_vars += f' -e "{param}={env_value}"'
 
-    exec_statement = f"docker run -it {environment_vars} --entrypoint /bin/bash gcr.io/scorpio-216915/mlspeclibdocker"
+    entrypoint_string = ""
+    if RUN_TYPE != "container pure":
+        entrypoint_string = "--entrypoint /bin/bash"
+
+    exec_statement = f"docker run -it {environment_vars} {entrypoint_string} gcr.io/scorpio-216915/mlspeclibdocker"
     print(exec_statement)
     os.system(exec_statement)
