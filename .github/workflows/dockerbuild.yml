@@ -14,7 +14,7 @@ on:
   pull_request:
 
 env:
-  IMAGE_NAME: mlspeclib-action-docker
+  IMAGE_NAME: mlspeclib-docker-action
 
 jobs:
   # Run tests.
