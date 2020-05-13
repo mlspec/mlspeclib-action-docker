@@ -244,7 +244,12 @@ class test_main(unittest.TestCase):
 
             self.assertTrue("schema and version" in str(context.exception))
 
+    def test_bar(self, *mock_stdout):
+        q = qaz()
+        q.exec_bar()
+
 #    @unittest.skip("Trying to debug")
+    @patch.object(StepExecution, '__init__', return_value=None)
     @patch('src.step_execution.StepExecution')
     def test_return_no_result_object(self, mock_step_execution):
         step_execution_instance = MagicMock()
