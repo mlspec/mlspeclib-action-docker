@@ -4,13 +4,15 @@ import io
 import unittest
 import logging
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
 import yaml as YAML
 import gremlin_python
 from gremlin_python.driver import client
 import mlspeclib.experimental.metastore
 from mlspeclib import MLObject
 from collections import namedtuple
+from unittest import mock
+from box import Box
 
 myPath = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(myPath, "..", "src"))
@@ -24,10 +26,11 @@ from src.main import (
     load_metastore_connection,
     load_workflow_object,
     load_contract_object,
-    load_contract_object,
+    execute_step,
 )  # noqa
 
 from src.utils import ConfigurationException  # noqa
+from src.step_execution import StepExecution
 
 
 class test_main(unittest.TestCase):
@@ -241,6 +244,23 @@ class test_main(unittest.TestCase):
 
             self.assertTrue("schema and version" in str(context.exception))
 
+#    @unittest.skip("Trying to debug")
+    @patch('src.step_execution.StepExecution')
+    def test_return_no_result_object(self, mock_step_execution):
+        step_execution_instance = MagicMock()
+        step_execution_instance.execute.return_value = None
+
+        mock_step_execution.return_value = step_execution_instance
+
+        g = StepExecution()
+
+        workflow_box = Box({'steps': {'FAKESTEP': {'output': {}}}})
+        workflow_box.steps.FAKESTEP.output.schema_type = 'FAKETYPE'
+        workflow_box.steps.FAKESTEP.output.schema_version = '0.0.1'
+        with self.assertRaises(ValueError) as context:
+            execute_step(workflow_box, None, None, 'FAKESTEP', None)
+
+        self.assertTrue("Cannot save output" in str(context.exception))
 
 if __name__ == "__main__":
     unittest.main()

@@ -19,7 +19,7 @@ from src.utils import (
     report_found_params,
     raise_schema_mismatch,
 )  # noqa
-from src.step_execution import step_execution  # noqa
+from src.step_execution import StepExecution  # noqa
 
 REQUIRED = [
     "INPUT_schemas_directory",
@@ -126,28 +126,7 @@ def main():
     ms.save(execution_object, workflow_object.schema_version, step_name, "execution")
     rootLogger.debug(f"Successfully saved: {execution_object}")
 
-    step_execution_object = step_execution(input_object, execution_object)
-    results_ml_object = step_execution_object.execute(
-        result_object_schema_type=workflow_object.steps[step_name].output.schema_type,
-        result_object_schema_version=workflow_object.steps[
-            step_name
-        ].output.schema_version,
-    )
-
-    if results_ml_object is None or not isinstance(results_ml_object, MLObject):
-        return ValueError(f"Execution failed to return an MLObject. Cannot save output.")
-
-    results_ml_object.run_id = parameters.GITHUB_RUN_ID
-    results_ml_object.step_id = uuid.uuid4()
-    results_ml_object.run_date = datetime.datetime.now()
-
-    # Using the below to validate the object, even though we already have it created.
-    load_contract_object(
-        parameter_string=YAML.safe_dump(results_ml_object.dict_without_internal_variables()),
-        workflow_object=workflow_object,
-        step_name=step_name,
-        contract_type="output",
-    )
+    results_ml_object = execute_step(workflow_object, input_object, execution_object, step_name, parameters.GITHUB_RUN_ID)
 
     ms.save(results_ml_object, workflow_object.schema_version, step_name, "output")
 
@@ -302,6 +281,32 @@ def load_contract_object(
     )
     return contract_object
 
+def execute_step(workflow_object: MLObject, input_object: MLObject, execution_object: MLObject, step_name, run_id):
+    rootLogger = logging.getLogger()
+    step_execution_object = StepExecution(input_object, execution_object)
+    results_ml_object = step_execution_object.execute(
+        result_object_schema_type=workflow_object.steps[step_name].output.schema_type,
+        result_object_schema_version=workflow_object.steps[
+            step_name
+        ].output.schema_version,
+    )
+
+    if results_ml_object is None or not isinstance(results_ml_object, MLObject):
+        raise ValueError(f"Execution failed to return an MLObject. Cannot save output.")
+
+    results_ml_object.run_id = run_id
+    results_ml_object.step_id = uuid.uuid4()
+    results_ml_object.run_date = datetime.datetime.now()
+
+    # Using the below to validate the object, even though we already have it created.
+    load_contract_object(
+        parameter_string=YAML.safe_dump(results_ml_object.dict_without_internal_variables()),
+        workflow_object=workflow_object,
+        step_name=step_name,
+        contract_type="output",
+    )
+
+    return results_ml_object
 
 if __name__ == "__main__":
     main()

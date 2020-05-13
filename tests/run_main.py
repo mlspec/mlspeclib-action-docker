@@ -12,7 +12,7 @@ import src  # noqa
 from src.main import main  # noqa
 
 RUN_TYPES = ["main", "entrypoint.sh", "container interactive", "container pure"]
-RUN_TYPE = RUN_TYPES[0]
+RUN_TYPE = RUN_TYPES[3]
 
 rootLogger = logging.getLogger()
 rootLogger.setLevel(logging.DEBUG)
@@ -85,6 +85,6 @@ elif RUN_TYPE == "container interactive" or RUN_TYPE == "container pure":
     if RUN_TYPE != "container pure":
         entrypoint_string = "--entrypoint /bin/bash"
 
-    exec_statement = f"docker run -it {environment_vars} {entrypoint_string} gcr.io/scorpio-216915/mlspeclibdocker"
+    exec_statement = f"docker run -it {environment_vars} {entrypoint_string} mlspeclibdocker"
 #    print(exec_statement)
     os.system(exec_statement)

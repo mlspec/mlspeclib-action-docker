@@ -24,7 +24,7 @@ from src.utils import (
 
 
 # Making this a class in case we want sub functions.
-class step_execution:
+class StepExecution:
     input_params = {}  # noqa
     execution_params = {}  # noqa
     ml_object = MLObject()  # noqa
@@ -43,6 +43,9 @@ class step_execution:
 
         if self.execution_params is not None:
             self.logger.debug(f"Execution params: {self.execution_params}")
+        else:
+            raise ValueError("No execution parameters provided.")
+
 
     def execute(self, result_object_schema_type, result_object_schema_version):
         # Create Result object

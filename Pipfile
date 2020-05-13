@@ -6,10 +6,17 @@ verify_ssl = true
 [dev-packages]
 debugpy = "*"
 pylint = "*"
+black = "*"
+ipython = "*"
 
 [packages]
 pyyaml = "*"
 mlspeclib = "*"
+debugpy = "*"
+msgpack = "*"
 
 [requires]
 python_version = "3.6"
+
+[pipenv]
+allow_prereleases = true
