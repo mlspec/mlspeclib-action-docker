@@ -134,11 +134,20 @@ def main():
         ].output.schema_version,
     )
 
+    if results_ml_object is None or not isinstance(results_ml_object, MLObject):
+        return ValueError(f"Execution failed to return an MLObject. Cannot save output.")
+
     results_ml_object.run_id = parameters.GITHUB_RUN_ID
     results_ml_object.step_id = uuid.uuid4()
     results_ml_object.run_date = datetime.datetime.now()
 
-    errors = results_ml_object.validate()
+    # Using the below to validate the object, even though we already have it created.
+    load_contract_object(
+        parameter_string=YAML.safe_dump(results_ml_object.dict_without_internal_variables()),
+        workflow_object=workflow_object,
+        step_name=step_name,
+        contract_type="output",
+    )
 
     ms.save(results_ml_object, workflow_object.schema_version, step_name, "output")
 

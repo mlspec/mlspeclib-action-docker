@@ -12,7 +12,7 @@ import src  # noqa
 from src.main import main  # noqa
 
 RUN_TYPES = ["main", "entrypoint.sh", "container interactive", "container pure"]
-RUN_TYPE = RUN_TYPES[3]
+RUN_TYPE = RUN_TYPES[0]
 
 rootLogger = logging.getLogger()
 rootLogger.setLevel(logging.DEBUG)
@@ -52,7 +52,7 @@ for param in parameters:
 # marshmallow.class_registry._registry['0_0_1_training_run']
 
 os.environ["GITHUB_RUN_ID"] = str(uuid.uuid4())
-os.environ["GITHUB_WORKSPACE"] = str(str(Path.cwd().resolve() / "tests"))
+os.environ["GITHUB_WORKSPACE"] = str(str(Path.cwd().resolve()))
 os.environ["VSCODE_DEBUGGING"] = "True"
 
 rootLogger.debug(os.environ)
@@ -86,5 +86,5 @@ elif RUN_TYPE == "container interactive" or RUN_TYPE == "container pure":
         entrypoint_string = "--entrypoint /bin/bash"
 
     exec_statement = f"docker run -it {environment_vars} {entrypoint_string} gcr.io/scorpio-216915/mlspeclibdocker"
-    print(exec_statement)
+#    print(exec_statement)
     os.system(exec_statement)
