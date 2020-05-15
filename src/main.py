@@ -230,7 +230,7 @@ def load_workflow_object(
     else:
         return workflow_object
 
-
+# TODO Break down into verifying contract_type, verify workflow object, and then verify just the MLObject
 def load_contract_object(
     parameter_string: str, workflow_object: MLObject, step_name: str, contract_type: str
 ):

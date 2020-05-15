@@ -244,21 +244,10 @@ class test_main(unittest.TestCase):
 
             self.assertTrue("schema and version" in str(context.exception))
 
-    def test_bar(self, *mock_stdout):
-        q = qaz()
-        q.exec_bar()
 
-#    @unittest.skip("Trying to debug")
     @patch.object(StepExecution, '__init__', return_value=None)
-    @patch('src.step_execution.StepExecution')
-    def test_return_no_result_object(self, mock_step_execution):
-        step_execution_instance = MagicMock()
-        step_execution_instance.execute.return_value = None
-
-        mock_step_execution.return_value = step_execution_instance
-
-        g = StepExecution()
-
+    @patch.object(StepExecution, 'execute', return_value=None)
+    def test_return_no_result_object(self, *mock_step_execution):
         workflow_box = Box({'steps': {'FAKESTEP': {'output': {}}}})
         workflow_box.steps.FAKESTEP.output.schema_type = 'FAKETYPE'
         workflow_box.steps.FAKESTEP.output.schema_version = '0.0.1'

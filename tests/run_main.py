@@ -85,6 +85,6 @@ elif RUN_TYPE == "container interactive" or RUN_TYPE == "container pure":
     if RUN_TYPE != "container pure":
         entrypoint_string = "--entrypoint /bin/bash"
 
-    exec_statement = f"docker run -it {environment_vars} {entrypoint_string} mlspeclibdocker"
+    exec_statement = f"docker run -it {environment_vars} {entrypoint_string} mlspeclib-action-sample-process-data"
 #    print(exec_statement)
     os.system(exec_statement)

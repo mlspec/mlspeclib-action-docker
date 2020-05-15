@@ -12,8 +12,9 @@ ipython = "*"
 [packages]
 pyyaml = "*"
 mlspeclib = "*"
-debugpy = "*"
 msgpack = "*"
+gremlinpython = "*"
+python-box = "*"
 
 [requires]
 python_version = "3.6"
