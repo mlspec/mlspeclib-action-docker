@@ -60,7 +60,7 @@ class test_main(unittest.TestCase):
 
     def test_convert_environment_variables(self):
         mock_variables = """\
-            INPUT_workflow_id: '0.0.1'
+            INPUT_workflow_version: '0.0.1'
             INPUT_step_name: 'process_data'
             INPUT_parameters_directory: '.parameters'
             INPUT_execution_parameters: 'tests/execution_parameters.yaml'

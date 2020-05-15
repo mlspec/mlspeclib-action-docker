@@ -23,7 +23,7 @@ from src.step_execution import StepExecution  # noqa
 
 REQUIRED = [
     "INPUT_schemas_directory",
-    "INPUT_workflow_id",
+    "INPUT_workflow_version",
     "INPUT_step_name",
     "INPUT_parameters_directory",
     "INPUT_input_parameters",
