@@ -14,7 +14,7 @@ pyyaml = "*"
 msgpack = "*"
 gremlinpython = "*"
 python-box = "*"
-mlspeclib = {editable = true,path = "./../mlspec-lib"}
+mlspeclib = "*"
 
 [requires]
 python_version = "3.6"
