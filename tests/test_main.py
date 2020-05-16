@@ -17,7 +17,7 @@ from box import Box
 myPath = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(myPath, "..", "src"))
 
-from src.main import (
+from src.main import ( # noqa E402
     main,
     setupLogger,
     convert_environment_variables_to_dict,
@@ -27,10 +27,10 @@ from src.main import (
     load_workflow_object,
     load_contract_object,
     execute_step,
-)  # noqa
+)  # noqa E402
 
-from src.utils import ConfigurationException  # noqa
-from src.step_execution import StepExecution
+from src.utils import ConfigurationException # noqa E402
+from src.step_execution import StepExecution # noqa E402
 
 
 class test_main(unittest.TestCase):
@@ -244,7 +244,6 @@ class test_main(unittest.TestCase):
 
             self.assertTrue("schema and version" in str(context.exception))
 
-
     @patch.object(StepExecution, '__init__', return_value=None)
     @patch.object(StepExecution, 'execute', return_value=None)
     def test_return_no_result_object(self, *mock_step_execution):
@@ -255,6 +254,7 @@ class test_main(unittest.TestCase):
             execute_step(workflow_box, None, None, 'FAKESTEP', None)
 
         self.assertTrue("Cannot save output" in str(context.exception))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -8,6 +8,7 @@ debugpy = "*"
 pylint = "*"
 black = "*"
 ipython = "*"
+flake8 = "*"
 
 [packages]
 pyyaml = "*"
