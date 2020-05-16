@@ -23,7 +23,7 @@ from src.step_execution import StepExecution  # noqa
 
 REQUIRED = [
     "INPUT_schemas_directory",
-    "INPUT_workflow_version",
+    "INPUT_workflow_node_id",
     "INPUT_step_name",
     "INPUT_parameters_directory",
     "INPUT_input_parameters",
@@ -70,17 +70,18 @@ def main():
 
     # Loading execution parameters file
 
+    # TODO Need to change this - execution parameters should be a variable, not a file
     rootLogger.debug("::debug::Loading parameters file")
     execution_parameters_file = os.environ.get(
         "INPUT_execution_parameters", default="execution_parameters.yaml"
     )
 
     verify_parameters_folder_and_file_exist(
-        parameters.GITHUB_WORKSPACE, parameters_directory, execution_parameters_file
+        Path.cwd(), parameters_directory, execution_parameters_file
     )
 
     execution_parameters_file_path = (
-        Path(parameters.GITHUB_WORKSPACE)
+        Path.cwd()
         / parameters_directory
         / execution_parameters_file
     )
@@ -97,7 +98,12 @@ def main():
 
     ms = load_metastore_connection(metastore_credentials)
 
-    workflow_object = load_workflow_object("0.0.1", ms)
+    workflow_node_id = os.environ.get("INPUT_workflow_node_id")
+
+    if workflow_node_id is None:
+        raise ValueError(f"No workflow node id was provided.")
+
+    workflow_object = load_workflow_object(workflow_node_id, ms)
 
     step_name = parameters.INPUT_step_name
 
@@ -205,19 +211,18 @@ def load_metastore_connection(metastore_credentials: dict):
 
 
 def load_workflow_object(
-    workflow_schema: str, metastore_connection: Metastore
+    workflow_version_id: str, metastore_connection: Metastore
 ) -> MLObject:
     rootLogger = logging.getLogger()
     rootLogger.setLevel(logging.CRITICAL)
-    workflow_schema = "0.0.1"
     (workflow_object, errors) = metastore_connection.get_workflow_object(
-        workflow_schema
+        workflow_version_id
     )
     rootLogger.setLevel(logging.DEBUG)
 
     if workflow_object is None:
         raise ValueError(
-            f"No workflow loaded when attempting to load workflow schema: {workflow_schema}"
+            f"No workflow loaded when attempting to load workflow schema: {workflow_version_id}"
         )
 
     if "steps" not in workflow_object:
