@@ -25,7 +25,6 @@ REQUIRED = [
     "INPUT_schemas_directory",
     "INPUT_workflow_node_id",
     "INPUT_step_name",
-    "INPUT_parameters_directory",
     "INPUT_input_parameters",
     "INPUT_execution_parameters",
     "INPUT_METASTORE_CREDENTIALS",
@@ -46,9 +45,8 @@ def main():
     rootLogger.debug("::debug::Loading input values")
 
     parameters = convert_environment_variables_to_dict()
-    parameters_directory = Path(parameters.INPUT_parameters_directory)
 
-    MLSchema.append_schema_to_registry(parameters_directory / parameters.INPUT_schemas_directory)
+    MLSchema.append_schema_to_registry(parameters.INPUT_schemas_directory)
 
     parameters.previous_step_name = os.environ.get(
         "INPUT_previous_step_name", default=None
@@ -72,27 +70,7 @@ def main():
 
     # TODO Need to change this - execution parameters should be a variable, not a file
     rootLogger.debug("::debug::Loading parameters file")
-    execution_parameters_file = os.environ.get(
-        "INPUT_execution_parameters", default="execution_parameters.yaml"
-    )
-
-    verify_parameters_folder_and_file_exist(
-        Path.cwd(), parameters_directory, execution_parameters_file
-    )
-
-    execution_parameters_file_path = (
-        Path.cwd()
-        / parameters_directory
-        / execution_parameters_file
-    )
-
-    execution_parameters = {}
-    try:
-        execution_parameters = execution_parameters_file_path.read_text("utf-8")
-    except FileNotFoundError:
-        rootLogger.debug(
-            f"::debug:: Could not find parameter file in {execution_parameters_file_path}. Please provide a parameter file in your repository if you do not want to use default settings (e.g. .parameters/execution_parameters.yaml)."
-        )
+    execution_parameters = os.environ.get("INPUT_execution_parameters", "")
 
     rootLogger.debug("::debug::Starting metastore connection")
 
