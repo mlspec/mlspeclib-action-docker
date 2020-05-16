@@ -16,7 +16,7 @@ jedi==0.17.0
 lazy-object-proxy==1.4.3
 marshmallow==3.6.0
 mccabe==0.6.1
-mlspeclib==0.0.9
+mlspeclib==0.0.12
 msgpack==1.0.0
 parso==0.7.0
 pathspec==0.8.0
