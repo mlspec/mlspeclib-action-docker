@@ -6,13 +6,17 @@ import uuid
 import debugpy
 from io import StringIO
 import sys
+import datetime
+from mlspeclib.experimental.metastore import Metastore
+from mlspeclib import MLObject, MLSchema
+import random
 
 sys.path.append(str(Path.cwd().resolve()))
 import src  # noqa
 from src.main import main  # noqa
 
 RUN_TYPES = ["main", "entrypoint.sh", "container interactive", "container pure"]
-RUN_TYPE = RUN_TYPES[3]
+RUN_TYPE = RUN_TYPES[0]
 
 rootLogger = logging.getLogger()
 rootLogger.setLevel(logging.DEBUG)
@@ -36,9 +40,6 @@ for i in os.environ:
 
 parameters = {}
 parameters = YAML.safe_load((Path("tests") / "env_variables.yaml").read_text('utf-8'))
-parameters["INPUT_input_parameters"] = (
-    Path(".parameters") / "input" / "datasource.yaml"
-).read_text('utf-8')
 
 for param in parameters:
     rootLogger.debug(f"{i}:\t{param}")
@@ -55,8 +56,42 @@ os.environ["GITHUB_RUN_ID"] = str(uuid.uuid4())
 os.environ["GITHUB_WORKSPACE"] = str(str(Path.cwd().resolve()))
 os.environ["VSCODE_DEBUGGING"] = "True"
 
+cred = parameters['INPUT_METASTORE_CREDENTIALS']
+ms = Metastore(cred)
+
+workflow_dict = parameters['INPUT_workflow']
+workflow_dict["workflow_version"] = str('999999999999.9.' + str(random.randint(0, 9999)))
+workflow_dict["run_id"] = str(uuid.uuid4())
+workflow_dict["step_id"] = str(uuid.uuid4())
+workflow_dict["run_date"] = datetime.datetime.now()
+
+MLSchema.append_schema_to_registry(Path('tests/schemas'))
+
+(workflow_object, err) = MLObject.create_object_from_string(workflow_dict)
+if len(err) != 0:
+    raise ValueError(f"Error creating mock workflow_object. Errors: {err}")
+
+parameters['INPUT_workflow_node_id'] = ms.create_workflow_node(workflow_object, str(uuid.uuid4()))
+
+parameters["GITHUB_RUN_ID"] = workflow_dict["run_id"]
+parameters["GITHUB_WORKSPACE"] = '/src'
+
 rootLogger.debug(os.environ)
 bar = buffer.getvalue()
+
+environment_vars = ""
+
+for param in parameters:
+    if param == 'ENTRYPOINT_OVERRIDE':
+        continue
+
+    if isinstance(parameters[param], dict):
+        env_value = YAML.safe_dump(parameters[param])
+    else:
+        env_value = parameters[param]
+    environment_vars += f' -e "{param}={env_value}"'
+
+    os.environ[param] = env_value
 
 if RUN_TYPE == "main":
     main()
@@ -64,22 +99,12 @@ elif RUN_TYPE == "entrypoint.sh":
     p = Path.cwd().resolve
     os.system(str(Path.cwd() / "src" / "entrypoint.sh"))
 elif RUN_TYPE == "container interactive" or RUN_TYPE == "container pure":
-    environment_vars = ""
-    os.environ.pop('ENTRYPOINT_OVERRIDE')
-    parameters['GITHUB_RUN_ID'] = os.environ["GITHUB_RUN_ID"]
-    parameters["GITHUB_WORKSPACE"] = '/src'
-    parameters['INPUT_parameters_directory'] = '.parameters'
-    parameters['INPUT_schemas_directory'] = 'schemas'
-    parameters['INPUT_execution_parameters'] = 'execution/execution_parameters.yaml'
-
-    for param in parameters:
-        if param == 'ENTRYPOINT_OVERRIDE':
-            continue
-        if isinstance(parameters[param], dict):
-            env_value = YAML.safe_dump(parameters[param])
-        else:
-            env_value = parameters[param]
-        environment_vars += f' -e "{param}={env_value}"'
+    # os.environ.pop('ENTRYPOINT_OVERRIDE')
+    # parameters['GITHUB_RUN_ID'] = os.environ["GITHUB_RUN_ID"]
+    # parameters["GITHUB_WORKSPACE"] = '/src'
+    # parameters['INPUT_parameters_directory'] = '.parameters'
+    # parameters['INPUT_schemas_directory'] = 'schemas'
+    # parameters['INPUT_execution_parameters'] = 'execution/execution_parameters.yaml'
 
     entrypoint_string = ""
     if RUN_TYPE != "container pure":

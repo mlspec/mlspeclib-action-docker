@@ -8,7 +8,7 @@ mlspec_schema_version:
 
 mlspec_schema_type:
   # Identifies the type of this schema
-  meta: package_result
+  meta: serve
 
 schema_version:
   # Identifies version of MLSpec to use to instantiate

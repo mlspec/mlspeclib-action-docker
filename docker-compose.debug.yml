@@ -1,0 +1,8 @@
+version: '3.4'
+
+services:
+  mlspeclib-docker:
+    image: mlspeclib-docker
+    build:
+      context: .
+      dockerfile: Dockerfile

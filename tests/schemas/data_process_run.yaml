@@ -8,7 +8,7 @@ mlspec_schema_version:
 
 mlspec_schema_type:
   # Identifies the type of this schema
-  meta: training_result
+  meta: data_process_run
 
 schema_version:
   # Identifies version of MLSpec to use to instantiate
@@ -16,22 +16,33 @@ schema_version:
   required: True
 
 schema_type:
-  # Identifies type of MLSpec to use to instantiate
-  type: allowed_schema_types
+  type: string
   required: True
 
-training_execution_id:
-  type: UUID
+nodes:
+  type: int
   required: True
 
-accuracy:
-  type: float
+cpu_per_node:
+  type: int
   required: True
 
-global_step:
-  type: float
+ram_per_node:
+  type: string
   required: True
 
-loss:
-  type: float
+gpu_required:
+  type: boolean
+  required: True
+
+output_root_path:
+  type: path
+  required: True
+
+base_image:
+  type: string
+  required: True
+
+machine_type:
+  type: string
   required: True

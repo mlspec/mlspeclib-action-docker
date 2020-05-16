@@ -8,6 +8,7 @@ import sys
 from io import StringIO
 import datetime
 import uuid
+import marshmallow
 
 from mlspeclib import MLObject, MLSchema
 from mlspeclib.experimental.metastore import Metastore
@@ -79,7 +80,7 @@ def main():
     workflow_node_id = os.environ.get("INPUT_workflow_node_id")
 
     if workflow_node_id is None:
-        raise ValueError(f"No workflow node id was provided.")
+        raise ValueError(f"INPUT_workflow_node_id - No workflow node id was provided.")
 
     workflow_object = load_workflow_object(workflow_node_id, ms)
 
@@ -91,6 +92,16 @@ def main():
         step_name=step_name,
         contract_type="input",
     )
+
+    ms.attach_step_info(
+        input_object,
+        workflow_object.schema_version,
+        workflow_node_id,
+        step_name,
+        "input",
+    )
+    rootLogger.debug(f"Successfully saved: {input_object}")
+
 
     # TODO don't hard code any of these
     exec_dict = YAML.safe_load(execution_parameters)
@@ -209,18 +220,18 @@ def load_metastore_connection(metastore_credentials: dict):
 
 
 def load_workflow_object(
-    workflow_version_id: str, metastore_connection: Metastore
+    workflow_node_id: str, metastore_connection: Metastore
 ) -> MLObject:
     rootLogger = logging.getLogger()
     rootLogger.setLevel(logging.CRITICAL)
     (workflow_object, errors) = metastore_connection.get_workflow_object(
-        workflow_version_id
+        workflow_node_id
     )
     rootLogger.setLevel(logging.DEBUG)
 
     if workflow_object is None:
         raise ValueError(
-            f"No workflow loaded when attempting to load workflow schema: {workflow_version_id}"
+            f"No workflow loaded when attempting to load workflow node id: {workflow_node_id}"
         )
 
     if "steps" not in workflow_object:
@@ -251,12 +262,14 @@ def load_contract_object(
             f"{contract_type} not in the expected list of contract types: {CONTRACT_TYPES}."
         )
 
+    a = marshmallow.class_registry._registry
+
     (contract_object, errors) = MLObject.create_object_from_string(parameter_string)
 
     if errors is not None and len(errors) > 0:
         rootLogger.debug(f"{contract_type} object loading errors: {errors}")
         raise ValueError(
-            f"Error when trying to validate the contract object {step_name}.{contract_type}."
+            f"Error when trying to validate the contract object {step_name}.{contract_type}. Errors: {errors}"
         )
 
     if step_name not in workflow_object["steps"]:

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "edf9af5612314b665a1a0484bd1891af31aaf218690ff608f5bbcda44b7816d1"
+            "sha256": "5f739f9821c5efc66bcf06b32fec9b1070720c05021ef75ed70c46584f7b155d"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -47,11 +47,8 @@
             "version": "==3.6.0"
         },
         "mlspeclib": {
-            "hashes": [
-                "sha256:3c4f161065a9be93531e4c36c773d776675ea749cf041beabee5305d866b219a"
-            ],
-            "index": "pypi",
-            "version": "==0.0.12"
+            "editable": true,
+            "path": "./../mlspec-lib"
         },
         "msgpack": {
             "hashes": [

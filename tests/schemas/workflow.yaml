@@ -8,7 +8,8 @@ mlspec_schema_version:
 
 mlspec_schema_type:
   # Identifies the type of this schema
-  meta: training_result
+  meta: workflow
+  last: True
 
 schema_version:
   # Identifies version of MLSpec to use to instantiate
@@ -20,18 +21,11 @@ schema_type:
   type: allowed_schema_types
   required: True
 
-training_execution_id:
-  type: UUID
+workflow_version:
+  # Identifies version of this workflow
+  type: semver
   required: True
 
-accuracy:
-  type: float
-  required: True
-
-global_step:
-  type: float
-  required: True
-
-loss:
-  type: float
+steps:
+  type: workflow_steps
   required: True

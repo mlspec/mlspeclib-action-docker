@@ -1,4 +1,4 @@
-schema_version: 0.0.1
+schema_version: 999.0.1
 schema_type: data_process_run
 base_image: ubuntu1804
 machine_type: NDv2

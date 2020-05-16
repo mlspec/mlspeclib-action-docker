@@ -11,10 +11,10 @@ ipython = "*"
 
 [packages]
 pyyaml = "*"
-mlspeclib = "*"
 msgpack = "*"
 gremlinpython = "*"
 python-box = "*"
+mlspeclib = {editable = true,path = "./../mlspec-lib"}
 
 [requires]
 python_version = "3.6"
