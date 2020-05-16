@@ -116,7 +116,7 @@ def main():
 
     # Recording raw log info
     logBuffer.flush()
-    log_contents = logBuffer.getvalue()
+    # log_contents = logBuffer.getvalue()
 
     log_object = MLObject()
     log_object.set_type(schema_version="0.1.0", schema_type="log")
@@ -129,7 +129,7 @@ def main():
     # log_object.raw_log = log_contents
     log_object.log_property_bag = {}
 
-    errors = log_object.validate()
+    # errors = log_object.validate()
 
     ms.save(log_object, workflow_object.schema_version, step_name, "log")
 
@@ -265,7 +265,7 @@ def load_contract_object(
     return contract_object
 
 def execute_step(workflow_object: MLObject, input_object: MLObject, execution_object: MLObject, step_name, run_id):
-    rootLogger = logging.getLogger()
+    # rootLogger = logging.getLogger()
     step_execution_object = StepExecution(input_object, execution_object)
     results_ml_object = step_execution_object.execute(
         result_object_schema_type=workflow_object.steps[step_name].output.schema_type,
