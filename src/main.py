@@ -107,12 +107,30 @@ def main():
 
     rootLogger.debug(f"Successfully loaded and validated execution: {execution_object}")
 
-    ms.save(execution_object, workflow_object.schema_version, step_name, "execution")
+    ms.attach_step_info(
+        execution_object,
+        workflow_object.schema_version,
+        workflow_node_id,
+        step_name,
+        "execution",
+    )
     rootLogger.debug(f"Successfully saved: {execution_object}")
 
-    results_ml_object = execute_step(workflow_object, input_object, execution_object, step_name, parameters.GITHUB_RUN_ID)
+    results_ml_object = execute_step(
+        workflow_object,
+        input_object,
+        execution_object,
+        step_name,
+        parameters.GITHUB_RUN_ID,
+    )
 
-    ms.save(results_ml_object, workflow_object.schema_version, step_name, "output")
+    ms.attach_step_info(
+        results_ml_object,
+        workflow_object.schema_version,
+        workflow_node_id,
+        step_name,
+        "output",
+    )
 
     # Recording raw log info
     logBuffer.flush()
@@ -131,7 +149,9 @@ def main():
 
     # errors = log_object.validate()
 
-    ms.save(log_object, workflow_object.schema_version, step_name, "log")
+    ms.attach_step_info(
+        log_object, workflow_object.schema_version, workflow_node_id, step_name, "log"
+    )
 
 
 def setupLogger():
@@ -213,6 +233,7 @@ def load_workflow_object(
     else:
         return workflow_object
 
+
 # TODO Break down into verifying contract_type, verify workflow object, and then verify just the MLObject
 def load_contract_object(
     parameter_string: str, workflow_object: MLObject, step_name: str, contract_type: str
@@ -234,13 +255,17 @@ def load_contract_object(
 
     if errors is not None and len(errors) > 0:
         rootLogger.debug(f"{contract_type} object loading errors: {errors}")
-        raise ValueError(f"Error when trying to validate the contract object {step_name}.{contract_type}.")
+        raise ValueError(
+            f"Error when trying to validate the contract object {step_name}.{contract_type}."
+        )
 
     if step_name not in workflow_object["steps"]:
         raise ValueError(f"Workflow object does not contain the step '{step_name}'.")
 
     if contract_type not in workflow_object["steps"][step_name]:
-        raise ValueError(f"Workflow object for step '{step_name}' does not contain a spec for the contract type: '{contract_type}'.")
+        raise ValueError(
+            f"Workflow object for step '{step_name}' does not contain a spec for the contract type: '{contract_type}'."
+        )
 
     if (
         contract_object.schema_type
@@ -264,7 +289,14 @@ def load_contract_object(
     )
     return contract_object
 
-def execute_step(workflow_object: MLObject, input_object: MLObject, execution_object: MLObject, step_name, run_id):
+
+def execute_step(
+    workflow_object: MLObject,
+    input_object: MLObject,
+    execution_object: MLObject,
+    step_name,
+    run_id,
+):
     # rootLogger = logging.getLogger()
     step_execution_object = StepExecution(input_object, execution_object)
     results_ml_object = step_execution_object.execute(
@@ -283,13 +315,16 @@ def execute_step(workflow_object: MLObject, input_object: MLObject, execution_ob
 
     # Using the below to validate the object, even though we already have it created.
     load_contract_object(
-        parameter_string=YAML.safe_dump(results_ml_object.dict_without_internal_variables()),
+        parameter_string=YAML.safe_dump(
+            results_ml_object.dict_without_internal_variables()
+        ),
         workflow_object=workflow_object,
         step_name=step_name,
         contract_type="output",
     )
 
     return results_ml_object
+
 
 if __name__ == "__main__":
     main()
