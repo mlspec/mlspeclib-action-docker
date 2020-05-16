@@ -46,7 +46,7 @@ def main():
 
     parameters = convert_environment_variables_to_dict()
 
-    MLSchema.append_schema_to_registry(parameters.INPUT_schemas_directory)
+    MLSchema.append_schema_to_registry(Path(parameters.INPUT_schemas_directory))
 
     parameters.previous_step_name = os.environ.get(
         "INPUT_previous_step_name", default=None
