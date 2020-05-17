@@ -13,6 +13,7 @@ from mlspeclib import MLObject
 from collections import namedtuple
 from unittest import mock
 from box import Box
+import base64
 
 myPath = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.join(myPath, "..", "src"))
@@ -95,32 +96,39 @@ class test_main(unittest.TestCase):
                 verify_parameters_folder_and_file_exist("foo", "bar", "qaz")
             )
 
+    def encode_dict(self, dict_to_encode: dict):
+        yaml_string = YAML.safe_dump(dict_to_encode)
+        encoded_string = yaml_string.encode('utf-8')
+        base64_string = str(base64.urlsafe_b64encode(encoded_string), "utf-8")
+        return base64_string
+
     def test_connect_to_metastore(self):
         with patch.object(gremlin_python.driver.client, "Client") as mock_connect:
             mock_connect.return_value = True
             cred_dict = {}
             with self.assertRaises(KeyError) as context:
-                load_metastore_connection(cred_dict)
+                load_metastore_connection(self.encode_dict(cred_dict))
             self.assertTrue("url" in str(context.exception))
 
             cred_dict["url"] = "foo"
             with self.assertRaises(KeyError) as context:
-                load_metastore_connection(cred_dict)
+                load_metastore_connection(self.encode_dict(cred_dict))
             self.assertTrue("key" in str(context.exception))
 
             cred_dict["key"] = "foo"
             with self.assertRaises(KeyError) as context:
-                load_metastore_connection(cred_dict)
+                load_metastore_connection(self.encode_dict(cred_dict))
             self.assertTrue("database_name" in str(context.exception))
 
             cred_dict["database_name"] = "foo"
             with self.assertRaises(KeyError) as context:
-                load_metastore_connection(cred_dict)
+                load_metastore_connection(self.encode_dict(cred_dict))
             self.assertTrue("container_name" in str(context.exception))
 
             cred_dict["container_name"] = "foo"
 
-            self.assertTrue(load_metastore_connection(cred_dict))
+            self.assertTrue(load_metastore_connection(self.encode_dict(cred_dict)))
+
 
     def test_load_workflow_object(self):
         with patch.object(
