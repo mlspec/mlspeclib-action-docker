@@ -48,36 +48,30 @@ jobs:
       - name: Build image
         run: docker build . --file Dockerfile --tag image
 
+      - name: Log into Docker Hub
+        run: docker login -u ${{ secrets.DOCKERUSERNAME }} -p ${{ secrets.DOCKERPASSWORD }}
+
       - name: Log into registry
         run: echo "${{ secrets.GITHUBTOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
 
-      - name: Push image to GitHub Package
-        run: |
-          IMAGE_ID=docker.pkg.github.com/mlspec/$IMAGE_NAME
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "master" ] && VERSION=latest
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag image $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
-      
-      - name: Log into Docker Hub
-        run: docker login -u ${{ secrets.DOCKERUSERNAME }} -p ${{ secrets.DOCKERPASSWORD }}
-      
-      - name: Push image to Docker Hub
-        run: |
-          IMAGE_ID=mlspec/$IMAGE_NAME
-          # Strip git ref prefix from version
-          VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
-          # Strip "v" prefix from tag name
-          [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-          # Use Docker `latest` tag convention
-          [ "$VERSION" == "master" ] && VERSION=latest
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag image $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
+      - name: Build Docker images
+        uses: docker/build-push-action@v1.1.0
+        with:
+          # Docker repository to tag the image with
+          repository: mlspec/mlspeclib-docker 
+          push: false
+
+      - name: Build and publish Docker Image to GitHub Packages Registry
+        uses: VaultVulp/gp-docker-action@1.1.2
+        with:
+          # GitHub token to push Docker image to GitHub Packages
+          github-token: ${{ secrets.GITHUBTOKEN }}
+          # Docker Image name
+          image-name: mlspec/mlspeclib-docker 
+          
+      - name: Push Docker images
+        uses: docker/build-push-action@v1.1.0
+        with:
+          # Docker repository to tag the image with
+          repository: mlspec/mlspeclib-docker 
+          push: true
