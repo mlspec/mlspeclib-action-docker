@@ -16,6 +16,7 @@ msgpack = "*"
 gremlinpython = "*"
 python-box = "*"
 mlspeclib = "*"
+toml = "*"
 
 [requires]
 python_version = "3.6"
