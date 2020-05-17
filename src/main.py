@@ -9,6 +9,7 @@ from io import StringIO
 import datetime
 import uuid
 import marshmallow
+import base64
 
 from mlspeclib import MLObject, MLSchema
 from mlspeclib.experimental.metastore import Metastore
@@ -62,7 +63,10 @@ def main():
         "INPUT_METASTORE_CREDENTIALS", default="{}"
     )
 
-    metastore_credentials = YAML.safe_load(metastore_cred_string_blob)
+    metastore_credentials_packed = YAML.safe_load(metastore_cred_string_blob)
+    metastore_credentials_string = base64.urlsafe_b64decode(metastore_credentials_packed).decode('utf-8')
+    metastore_credentials = YAML.safe_load(metastore_credentials_string)
+
     report_found_params(
         ["url", "key", "database_name", "container_name"], metastore_credentials
     )
@@ -75,7 +79,7 @@ def main():
 
     rootLogger.debug("::debug::Starting metastore connection")
 
-    ms = load_metastore_connection(metastore_credentials)
+    ms = load_metastore_connection(metastore_credentials_packed)
 
     workflow_node_id = os.environ.get("INPUT_workflow_node_id")
 
@@ -261,8 +265,6 @@ def load_contract_object(
         raise ValueError(
             f"{contract_type} not in the expected list of contract types: {CONTRACT_TYPES}."
         )
-
-    a = marshmallow.class_registry._registry
 
     (contract_object, errors) = MLObject.create_object_from_string(parameter_string)
 
