@@ -10,6 +10,7 @@ import datetime
 from mlspeclib.experimental.metastore import Metastore
 from mlspeclib import MLObject, MLSchema
 import random
+import base64
 
 sys.path.append(str(Path.cwd().resolve()))
 import src  # noqa
@@ -56,8 +57,9 @@ os.environ["GITHUB_RUN_ID"] = str(uuid.uuid4())
 os.environ["GITHUB_WORKSPACE"] = str(str(Path.cwd().resolve()))
 os.environ["VSCODE_DEBUGGING"] = "True"
 
-cred = parameters['INPUT_METASTORE_CREDENTIALS']
-ms = Metastore(cred)
+credentials_packed = parameters['INPUT_METASTORE_CREDENTIALS']
+
+ms = Metastore(credentials_packed)
 
 workflow_dict = parameters['INPUT_workflow']
 workflow_dict["workflow_version"] = str('999999999999.9.' + str(random.randint(0, 9999)))

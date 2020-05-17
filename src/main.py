@@ -215,8 +215,8 @@ def verify_parameters_folder_and_file_exist(
     return True
 
 
-def load_metastore_connection(metastore_credentials: dict):
-    return Metastore(credentials=metastore_credentials)
+def load_metastore_connection(credentials_packed: str):
+    return Metastore(credentials_packed=credentials_packed)
 
 
 def load_workflow_object(
