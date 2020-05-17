@@ -53,7 +53,7 @@ jobs:
 
       - name: Push image to GitHub Package
         run: |
-          IMAGE_ID=docker.pkg.github.com/${{ github.repository }}/$IMAGE_NAME
+          IMAGE_ID=docker.pkg.github.com/mlspec/$IMAGE_NAME
           # Strip git ref prefix from version
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
           # Strip "v" prefix from tag name
@@ -70,7 +70,7 @@ jobs:
       
       - name: Push image to Docker Hub
         run: |
-          IMAGE_ID=${{ secrets.DOCKERUSERNAME }}/$IMAGE_NAME
+          IMAGE_ID=mlspec/$IMAGE_NAME
           # Strip git ref prefix from version
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
           # Strip "v" prefix from tag name
