@@ -47,6 +47,7 @@ jobs:
           username: ${{ secrets.DOCKERUSERNAME }}
           password: ${{ secrets.DOCKERPASSWORD }}
           repository: mlspec/mlspeclib-action-docker
+          tag_with_sha: true
           tag_with_ref: true
           push: false
 
@@ -66,5 +67,6 @@ jobs:
           username: ${{ secrets.DOCKERUSERNAME }}
           password: ${{ secrets.DOCKERPASSWORD }}
           repository: mlspec/mlspeclib-action-docker
+          tag_with_sha: true
           tag_with_ref: true
           push: ${{ startsWith(github.ref, 'refs/tags/') }}          
