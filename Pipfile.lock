@@ -48,10 +48,10 @@
         },
         "mlspeclib": {
             "hashes": [
-                "sha256:6c59cb38a594a28b6e1891cbdd3ef1c927f46e957379672ecab5f2e1d892121a"
+                "sha256:c9d48152b09ea50c9a12c0e7651fa7a907c3a4e0834d9b9476d01f1909e80e55"
             ],
             "index": "pypi",
-            "version": "==0.0.16"
+            "version": "==0.0.17"
         },
         "msgpack": {
             "hashes": [
