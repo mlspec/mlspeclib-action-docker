@@ -69,4 +69,4 @@ jobs:
           repository: mlspec/mlspeclib-action-docker
           tag_with_sha: true
           tag_with_ref: true
-          push: ${{ startsWith(github.ref, 'refs/tags/') }}          
+          push: true          
