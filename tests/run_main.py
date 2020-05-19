@@ -17,7 +17,8 @@ import src  # noqa
 from src.main import main  # noqa
 
 RUN_TYPES = ["main", "entrypoint.sh", "container interactive", "container pure"]
-RUN_TYPE = RUN_TYPES[0]
+RUN_TYPE = RUN_TYPES[os.environ.get('RUN_TYPE', 0)]
+
 
 rootLogger = logging.getLogger()
 rootLogger.setLevel(logging.DEBUG)
