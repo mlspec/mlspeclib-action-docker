@@ -6,7 +6,7 @@ LABEL maintainer="aronchick"
 
 FROM base as builder
 
-RUN apt-get -y update && apt-get -y install python3-all python3-pip
+RUN apt-get -y update && apt-get -y install python3-all python3-pip git
 
 RUN mkdir /install
 WORKDIR /install
