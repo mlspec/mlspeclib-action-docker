@@ -5,7 +5,7 @@ gitpython==3.1.2
 gremlinpython==3.4.6
 isodate==0.6.0
 marshmallow==3.6.0
-mlspeclib==0.0.19
+mlspeclib==0.0.21
 msgpack==1.0.0
 pymysql==0.9.3
 python-box==5.0.0a0
