@@ -29,8 +29,6 @@ from src.step_execution import StepExecution  # noqa
 REQUIRED = [
     "INPUT_workflow_node_id",
     "INPUT_step_name",
-    "INPUT_input_parameters",
-    "INPUT_execution_parameters",
     "INPUT_METASTORE_CREDENTIALS",
     "GITHUB_RUN_ID",
     "GITHUB_WORKSPACE",
@@ -99,10 +97,11 @@ def main():
 
     workflow_object = load_workflow_object(workflow_node_id, ms)
 
-    step_name = parameters.INPUT_step_name
+    input_parameters = load_parameters('input', ms)
 
+    step_name = parameters.INPUT_step_name
     input_object = load_contract_object(
-        parameter_string=parameters["INPUT_input_parameters"],
+        parameter_string=input_parameters,
         workflow_object=workflow_object,
         step_name=step_name,
         contract_type="input",
@@ -279,10 +278,28 @@ def load_workflow_object(
     else:
         return workflow_object
 
+def load_parameters(contract_type: str, metastore_connection: Metastore):
+    """ Loads parameters for 'input' or 'execution' from one of metastore, base64 encoded string or raw parameters. If more than one are set, the first available in this list overrides. If none are set, raises a ValueError."""
+    if contract_type not in ['input', 'execution']:
+        raise ValueError(f"{contract_type} is not either 'input' or 'execution'")
+
+    parameters_raw = os.environ.get(f"INPUT_{contract_type}_parameters_raw", None)
+    parameters_base64 = os.environ.get(f"INPUT_{contract_type}_parameters_base64", None)
+    parameters_node_id = os.environ.get(f"INPUT_{contract_type}_parameters_node_id", None)
+    if parameters_node_id is not None:
+        contract_object = metastore_connection.get_object(parameters_node_id)
+        return contract_object.dict_without_internal_variables()
+    elif parameters_base64 is not None:
+        base64_decode = base64.urlsafe_b64decode(parameters_base64)
+        return YAML.safe_load(base64_decode)
+    elif parameters_raw is not None:
+        return YAML.safe_load(parameters_raw)
+    else:
+        raise ValueError(f"No values were set for '{contract_type}'. Was expecting one of INPUT_{contract_type}_parameters_raw, INPUT_{contract_type}_parameters_base64,  INPUT_{contract_type}_parameters_node_id to be available in the environment variables.")
 
 # TODO Break down into verifying contract_type, verify workflow object, and then verify just the MLObject
 def load_contract_object(
-    parameter_string: str, workflow_object: MLObject, step_name: str, contract_type: str
+    parameter_string: dict, workflow_object: MLObject, step_name: str, contract_type: str
 ):
     """ Creates an MLObject based on an input string, and validates it against the workflow object
     and step_name provided.
@@ -297,7 +314,7 @@ def load_contract_object(
             f"{contract_type} not in the expected list of contract types: {CONTRACT_TYPES}."
         )
 
-    (contract_object, errors) = MLObject.create_object_from_string(parameter_string)
+    (contract_object, errors) = MLObject.create_object_from_string(YAML.safe_dump(parameter_string))
 
     if errors is not None and len(errors) > 0:
         rootLogger.debug(f"{contract_type} object loading errors: {errors}")
