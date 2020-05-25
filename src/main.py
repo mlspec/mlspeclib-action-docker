@@ -80,28 +80,23 @@ def main():
         ["url", "key", "database_name", "container_name"], metastore_credentials
     )
 
-    # Loading execution parameters file
-
-    # TODO Need to change this - execution parameters should be a variable, not a file
-    rootLogger.debug("::debug::Loading parameters file")
-    execution_parameters = os.environ.get("INPUT_execution_parameters", "")
-
     rootLogger.debug("::debug::Starting metastore connection")
 
     ms = load_metastore_connection(metastore_credentials_packed)
-
     workflow_node_id = os.environ.get("INPUT_workflow_node_id")
-
     if workflow_node_id is None:
         raise ValueError(f"INPUT_workflow_node_id - No workflow node id was provided.")
-
     workflow_object = load_workflow_object(workflow_node_id, ms)
 
+    rootLogger.debug("::debug::Loading input parameters")
     input_parameters = load_parameters('input', ms)
+
+    rootLogger.debug("::debug::Loading execution parameters file")
+    execution_parameters = load_parameters('execution', ms)
 
     step_name = parameters.INPUT_step_name
     input_object = load_contract_object(
-        parameter_string=input_parameters,
+        parameters=input_parameters,
         workflow_object=workflow_object,
         step_name=step_name,
         contract_type="input",
@@ -116,15 +111,14 @@ def main():
     )
     rootLogger.debug(f"Successfully saved: {input_object}")
 
-
     # TODO don't hard code any of these
-    exec_dict = YAML.safe_load(execution_parameters)
+    exec_dict = execution_parameters
     exec_dict["run_id"] = parameters.GITHUB_RUN_ID
     exec_dict["run_date"] = datetime.datetime.now()
     exec_dict["step_id"] = str(uuid.uuid4())
 
     execution_object = load_contract_object(
-        parameter_string=YAML.safe_dump(exec_dict),
+        parameters=exec_dict,
         workflow_object=workflow_object,
         step_name=step_name,
         contract_type="execution",
@@ -299,7 +293,7 @@ def load_parameters(contract_type: str, metastore_connection: Metastore):
 
 # TODO Break down into verifying contract_type, verify workflow object, and then verify just the MLObject
 def load_contract_object(
-    parameter_string: dict, workflow_object: MLObject, step_name: str, contract_type: str
+    parameters: dict, workflow_object: MLObject, step_name: str, contract_type: str
 ):
     """ Creates an MLObject based on an input string, and validates it against the workflow object
     and step_name provided.
@@ -314,7 +308,14 @@ def load_contract_object(
             f"{contract_type} not in the expected list of contract types: {CONTRACT_TYPES}."
         )
 
-    (contract_object, errors) = MLObject.create_object_from_string(YAML.safe_dump(parameter_string))
+    if isinstance(parameters, dict):
+        parameters_string = YAML.safe_dump(parameters)
+    elif isinstance(parameters, str):
+        parameters_string = parameters
+    else:
+        raise ValueError(f'load_contract_object was called with neither a string nor a dict. Value: {parameters}')
+
+    (contract_object, errors) = MLObject.create_object_from_string(parameters_string)
 
     if errors is not None and len(errors) > 0:
         rootLogger.debug(f"{contract_type} object loading errors: {errors}")
@@ -373,14 +374,12 @@ def execute_step(
         raise ValueError(f"Execution failed to return an MLObject. Cannot save output.")
 
     results_ml_object.run_id = run_id
-    results_ml_object.step_id = uuid.uuid4()
-    results_ml_object.run_date = datetime.datetime.now()
+    results_ml_object.step_id = str(uuid.uuid4())
+    results_ml_object.run_date = datetime.datetime.now().isoformat()
 
     # Using the below to validate the object, even though we already have it created.
     load_contract_object(
-        parameter_string=YAML.safe_dump(
-            results_ml_object.dict_without_internal_variables()
-        ),
+        parameters=results_ml_object.dict_without_internal_variables(),
         workflow_object=workflow_object,
         step_name=step_name,
         contract_type="output",
