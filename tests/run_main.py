@@ -11,6 +11,8 @@ from mlspeclib.experimental.metastore import Metastore
 from mlspeclib import MLObject, MLSchema
 import random
 import base64
+import tempfile
+import shutil
 
 sys.path.append(str(Path.cwd().resolve()))
 import src  # noqa
@@ -18,7 +20,6 @@ from src.main import main  # noqa
 
 RUN_TYPES = ["main", "entrypoint.sh", "container interactive", "container pure"]
 RUN_TYPE = RUN_TYPES[os.environ.get('RUN_TYPE', 0)]
-
 
 rootLogger = logging.getLogger()
 rootLogger.setLevel(logging.DEBUG)
@@ -36,7 +37,6 @@ formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(messag
 stdout_handler.setFormatter(formatter)
 rootLogger.addHandler(stdout_handler)
 
-
 for i in os.environ:
     rootLogger.debug(f"{i}:\t{os.environ.get(i)}")
 
@@ -51,8 +51,6 @@ for param in parameters:
         env_value = parameters[param]
 
     os.environ[param] = env_value
-
-# marshmallow.class_registry._registry['0_0_1_training_run']
 
 os.environ["GITHUB_RUN_ID"] = str(uuid.uuid4())
 os.environ["GITHUB_WORKSPACE"] = str(str(Path.cwd().resolve()))
@@ -116,3 +114,8 @@ elif RUN_TYPE == "container interactive" or RUN_TYPE == "container pure":
     exec_statement = f"docker run -it {environment_vars} {entrypoint_string} mlspeclib-action-sample-process-data"
 #    print(exec_statement)
     os.system(exec_statement)
+
+p = Path(parameters['INPUT_schemas_directory'])
+for x in p.iterdir():
+    if x.is_dir():
+        shutil.rmtree(str(x.resolve()), ignore_errors=True)

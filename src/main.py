@@ -10,6 +10,8 @@ import datetime
 import uuid
 import marshmallow
 import base64
+import git
+from git import GitCommandError
 
 from mlspeclib import MLObject, MLSchema
 from mlspeclib.experimental.metastore import Metastore
@@ -24,7 +26,6 @@ from src.utils import (
 from src.step_execution import StepExecution  # noqa
 
 REQUIRED = [
-    "INPUT_schemas_directory",
     "INPUT_workflow_node_id",
     "INPUT_step_name",
     "INPUT_input_parameters",
@@ -47,6 +48,15 @@ def main():
     rootLogger.debug("::debug::Loading input values")
 
     parameters = convert_environment_variables_to_dict()
+
+    parameters.INPUT_schemas_directory = os.environ.get("INPUT_schemas_directory", ".parameters/schemas")
+
+    if "INPUT_schemas_git_url" in os.environ:
+        parameters.INPUT_schemas_git_url = os.environ.get("INPUT_schemas_git_url")
+        try:
+            git.Git(parameters.INPUT_schemas_directory).clone(parameters.INPUT_schemas_git_url, str(uuid.uuid4()), depth=1)
+        except GitCommandError as gce:
+            raise ValueError(f"Trying to read from the git repo ({parameters.INPUT_schemas_git_url}) and write to the directory ({parameters.INPUT_schemas_directory}). Full error follows: {str(gce)}")
 
     MLSchema.append_schema_to_registry(Path(parameters.INPUT_schemas_directory))
 

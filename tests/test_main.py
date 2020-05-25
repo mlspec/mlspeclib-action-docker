@@ -15,8 +15,8 @@ from unittest import mock
 from box import Box
 import base64
 
-myPath = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(myPath, "..", "src"))
+sys.path.append(str(Path.cwd()))
+sys.path.append(str(Path.cwd().parent))
 
 from src.main import ( # noqa E402
     main,
