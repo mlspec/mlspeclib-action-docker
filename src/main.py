@@ -1,5 +1,6 @@
 import os
 from os import path
+
 import yaml as YAML
 import logging
 from box import Box
@@ -107,7 +108,7 @@ def main():
         contract_type="input",
     )
 
-    ms.attach_step_info(
+    input_node_id = ms.attach_step_info(
         input_object,
         workflow_object.schema_version,
         workflow_node_id,
@@ -132,7 +133,7 @@ def main():
 
     rootLogger.debug(f"Successfully loaded and validated execution: {execution_object}")
 
-    ms.attach_step_info(
+    execution_node_id = ms.attach_step_info(
         execution_object,
         workflow_object.schema_version,
         workflow_node_id,
@@ -149,13 +150,24 @@ def main():
         parameters.GITHUB_RUN_ID,
     )
 
-    ms.attach_step_info(
+    output_node_id = ms.attach_step_info(
         results_ml_object,
         workflow_object.schema_version,
         workflow_node_id,
         step_name,
         "output",
     )
+
+    dict_conversion = results_ml_object.dict_without_internal_variables()
+
+    string_io_handle = StringIO()
+    YAML.SafeDumper.add_representer(uuid.UUID, repr_uuid)
+    YAML.safe_dump(dict_conversion, string_io_handle)
+    yaml_conversion = string_io_handle.getvalue()
+
+    encode_to_utf8_bytes = yaml_conversion.encode("utf-8")
+    base64_encode = base64.urlsafe_b64encode(encode_to_utf8_bytes)
+    final_encode_to_utf8 = str(base64_encode, "utf-8")
 
     # Recording raw log info
     logBuffer.flush()
@@ -174,10 +186,19 @@ def main():
 
     # errors = log_object.validate()
 
-    ms.attach_step_info(
+    log_node_id = ms.attach_step_info(
         log_object, workflow_object.schema_version, workflow_node_id, step_name, "log"
     )
 
+    print(f"::set-output name=output_raw::{results_ml_object.dict_without_internal_variables()}")
+    print(f"::set-output name=output_base64_encoded::{final_encode_to_utf8}")
+    print(f"::set-output name=input_node_id::{input_node_id}")
+    print(f"::set-output name=execution_node_id::{execution_node_id}")
+    print(f"::set-output name=output_node_id::{output_node_id}")
+    print(f"::set-output name=log_node_id::{log_node_id}")
+
+def repr_uuid(dumper, uuid_obj):
+    return YAML.ScalarNode("tag:yaml.org,2002:str", str(uuid_obj))
 
 def setupLogger():
     rootLogger = logging.getLogger()
