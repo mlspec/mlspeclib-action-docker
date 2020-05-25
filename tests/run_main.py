@@ -100,13 +100,6 @@ elif RUN_TYPE == "entrypoint.sh":
     p = Path.cwd().resolve
     os.system(str(Path.cwd() / "src" / "entrypoint.sh"))
 elif RUN_TYPE == "container interactive" or RUN_TYPE == "container pure":
-    # os.environ.pop('ENTRYPOINT_OVERRIDE')
-    # parameters['GITHUB_RUN_ID'] = os.environ["GITHUB_RUN_ID"]
-    # parameters["GITHUB_WORKSPACE"] = '/src'
-    # parameters['INPUT_parameters_directory'] = '.parameters'
-    # parameters['INPUT_schemas_directory'] = 'schemas'
-    # parameters['INPUT_execution_parameters'] = 'execution/execution_parameters.yaml'
-
     entrypoint_string = ""
     if RUN_TYPE != "container pure":
         entrypoint_string = "--entrypoint /bin/bash"

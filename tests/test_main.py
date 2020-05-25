@@ -66,7 +66,7 @@ class test_main(unittest.TestCase):
             INPUT_parameters_directory: '.parameters'
             INPUT_execution_parameters: 'tests/execution_parameters.yaml'
             INPUT_schemas_directory: 'tests/workflow_schemas'
-            INPUT_input_parameters: 'input_parameters'
+            INPUT_input_parameters_raw: 'input_parameters'
             GITHUB_RUN_ID: 'github_run_id'
             GITHUB_WORKSPACE: 'github_workspace'
             INPUT_METASTORE_CREDENTIALS: 'a: b\nc: d'"""
