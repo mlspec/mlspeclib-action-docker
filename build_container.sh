@@ -11,7 +11,7 @@ RUN_TYPE=0
 python3 tests/run_main.py
 
 docker build --no-cache -t mlspec/mlspeclib-action-docker .
-docker push mlspec/mlspeclib-action-docker
+docker push mlspec/mlspeclib-action-docker:latest
 
 RUN_TYPE=3
 python3 tests/run_main.py
