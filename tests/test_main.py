@@ -3,6 +3,7 @@ import sys
 import io
 import unittest
 import logging
+import pathlib
 from pathlib import Path
 from unittest.mock import patch, MagicMock
 import yaml as YAML
@@ -18,7 +19,7 @@ import base64
 sys.path.append(str(Path.cwd()))
 sys.path.append(str(Path.cwd().parent))
 
-from src.main import ( # noqa E402
+from src.main import (  # noqa E402
     main,
     setupLogger,
     convert_environment_variables_to_dict,
@@ -28,10 +29,11 @@ from src.main import ( # noqa E402
     load_workflow_object,
     load_contract_object,
     execute_step,
+    load_parameters,
 )  # noqa E402
 
-from src.utils import ConfigurationException # noqa E402
-from src.step_execution import StepExecution # noqa E402
+from src.utils import ConfigurationException  # noqa E402
+from src.step_execution import StepExecution  # noqa E402
 
 
 class test_main(unittest.TestCase):
@@ -98,7 +100,7 @@ class test_main(unittest.TestCase):
 
     def encode_dict(self, dict_to_encode: dict):
         yaml_string = YAML.safe_dump(dict_to_encode)
-        encoded_string = yaml_string.encode('utf-8')
+        encoded_string = yaml_string.encode("utf-8")
         base64_string = str(base64.urlsafe_b64encode(encoded_string), "utf-8")
         return base64_string
 
@@ -128,7 +130,6 @@ class test_main(unittest.TestCase):
             cred_dict["container_name"] = "foo"
 
             self.assertTrue(load_metastore_connection(self.encode_dict(cred_dict)))
-
 
     def test_load_workflow_object(self):
         with patch.object(
@@ -166,7 +167,7 @@ class test_main(unittest.TestCase):
         ) as mock_mlobject:
             mock_mlobject.return_value = (None, "error")
             with self.assertRaises(ValueError) as context:
-                load_contract_object(None, None, None, "input")
+                load_contract_object("FAKEFIELD: FAKEVALUE", None, None, "input")
 
             self.assertTrue("validate the contract" in str(context.exception))
 
@@ -176,7 +177,9 @@ class test_main(unittest.TestCase):
         ) as mock_mlobject:
             mock_mlobject.return_value = (None, None)
             with self.assertRaises(ValueError) as context:
-                load_contract_object(None, {"steps": {}}, None, "input")
+                load_contract_object(
+                    "FAKEFIELD: FAKEVALUE", {"steps": {}}, None, "input"
+                )
 
             self.assertTrue("contain the step" in str(context.exception))
 
@@ -187,7 +190,10 @@ class test_main(unittest.TestCase):
             mock_mlobject.return_value = (None, None)
             with self.assertRaises(ValueError) as context:
                 load_contract_object(
-                    None, {"steps": {"step_name": "NO_CONTRACT"}}, "step_name", "input"
+                    "FAKEFIELD: FAKEVALUE",
+                    {"steps": {"step_name": "NO_CONTRACT"}},
+                    "step_name",
+                    "input",
                 )
 
             self.assertTrue("the contract type" in str(context.exception))
@@ -205,7 +211,7 @@ class test_main(unittest.TestCase):
             )
             with self.assertRaises(ValueError) as context:
                 load_contract_object(
-                    None,
+                    "FAKEFIELD: FAKEVALUE",
                     {
                         "steps": {
                             "step_name": {
@@ -235,7 +241,7 @@ class test_main(unittest.TestCase):
             )
             with self.assertRaises(ValueError) as context:
                 load_contract_object(
-                    None,
+                    "FAKEFIELD: FAKEVALUE",
                     {
                         "steps": {
                             "step_name": {
@@ -252,16 +258,39 @@ class test_main(unittest.TestCase):
 
             self.assertTrue("schema and version" in str(context.exception))
 
-    @patch.object(StepExecution, '__init__', return_value=None)
-    @patch.object(StepExecution, 'execute', return_value=None)
+    @patch.object(StepExecution, "__init__", return_value=None)
+    @patch.object(StepExecution, "execute", return_value=None)
     def test_return_no_result_object(self, *mock_step_execution):
-        workflow_box = Box({'steps': {'FAKESTEP': {'output': {}}}})
-        workflow_box.steps.FAKESTEP.output.schema_type = 'FAKETYPE'
-        workflow_box.steps.FAKESTEP.output.schema_version = '0.0.1'
+        workflow_box = Box({"steps": {"FAKESTEP": {"output": {}}}})
+        workflow_box.steps.FAKESTEP.output.schema_type = "FAKETYPE"
+        workflow_box.steps.FAKESTEP.output.schema_version = "0.0.1"
         with self.assertRaises(ValueError) as context:
-            execute_step(workflow_box, None, None, 'FAKESTEP', None)
+            execute_step(workflow_box, None, None, "FAKESTEP", None)
 
         self.assertTrue("Cannot save output" in str(context.exception))
+
+    @patch.object(Path, "__init__", return_value=None)
+    @patch.object(Path, "exists", return_value=False)
+    def test_load_param_from_file_does_not_exist(self, *mock_path):
+        contract_type = "input"
+
+        os.environ[f"INPUT_{contract_type}_parameters_file_path"] = "FAKEPATH"
+
+        with self.assertRaises(ValueError):
+            load_parameters(contract_type, False)
+
+    @patch.object(Path, "__init__", return_value=None)
+    @patch.object(Path, "exists", return_value=True)
+    @patch.object(Path, "read_text", return_value="FAKEFIELD: 'FAKEVALUE'")
+    def test_load_param_from_file_exists(self, *mock_path):
+        contract_type = "input"
+
+        os.environ[f"INPUT_{contract_type}_parameters_file_path"] = "FAKEPATH"
+        expected_dict = YAML.safe_load("FAKEFIELD: 'FAKEVALUE'")
+
+        return_dict = load_parameters("input", None)
+
+        self.assertTrue(return_dict["FAKEFIELD"] == expected_dict["FAKEFIELD"])
 
 
 if __name__ == "__main__":
