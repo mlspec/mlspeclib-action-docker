@@ -54,6 +54,7 @@ def main():
         parameters.INPUT_schemas_git_url = os.environ.get("INPUT_schemas_git_url")
         try:
             git.Git(parameters.INPUT_schemas_directory).clone(parameters.INPUT_schemas_git_url, str(uuid.uuid4()), depth=1)
+            # TODO: Authenticate with GH Token?
         except GitCommandError as gce:
             raise ValueError(f"Trying to read from the git repo ({parameters.INPUT_schemas_git_url}) and write to the directory ({parameters.INPUT_schemas_directory}). Full error follows: {str(gce)}")
 
@@ -273,16 +274,25 @@ def load_workflow_object(
         return workflow_object
 
 def load_parameters(contract_type: str, metastore_connection: Metastore):
-    """ Loads parameters for 'input' or 'execution' from one of metastore, base64 encoded string or raw parameters. If more than one are set, the first available in this list overrides. If none are set, raises a ValueError."""
+    """ Loads parameters for 'input' or 'execution' from one of metastore, file path, base64 encoded string or raw parameters. If more than one are set, the first available in this list overrides. If none are set, raises a ValueError."""
     if contract_type not in ['input', 'execution']:
         raise ValueError(f"{contract_type} is not either 'input' or 'execution'")
 
     parameters_raw = os.environ.get(f"INPUT_{contract_type}_parameters_raw", None)
     parameters_base64 = os.environ.get(f"INPUT_{contract_type}_parameters_base64", None)
     parameters_node_id = os.environ.get(f"INPUT_{contract_type}_parameters_node_id", None)
+    parameters_file_path = os.environ.get(f"INPUT_{contract_type}_parameters_file_path", None)
+
     if parameters_node_id is not None:
         contract_object = metastore_connection.get_object(parameters_node_id)
         return contract_object.dict_without_internal_variables()
+    elif parameters_file_path is not None:
+        file_path = Path(parameters_file_path)
+        if file_path.exists():
+            file_contents = file_path.read_text()
+            return YAML.safe_load(file_contents)
+        else:
+            raise ValueError(f"'{str(file_path)}' was provided as an input for the '{contract_type}' parameter of this step, but that file does not exist.")
     elif parameters_base64 is not None:
         base64_decode = base64.urlsafe_b64decode(parameters_base64)
         return YAML.safe_load(base64_decode)
