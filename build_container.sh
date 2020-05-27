@@ -1,4 +1,6 @@
 #!/bin/bash
+pipenv shell 
+
 pipenv update mlspeclib
 pipenv lock -r > requirements.txt
 
