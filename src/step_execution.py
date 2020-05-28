@@ -17,6 +17,7 @@ from mlspeclib.experimental.metastore import Metastore
 from utils import ( # noqa
     report_found_params,
     raise_schema_mismatch,
+    setupLogger,
 )
 
 
@@ -43,7 +44,6 @@ class StepExecution:
         else:
             raise ValueError("No execution parameters provided.")
 
-
     def execute(self, result_object_schema_type, result_object_schema_version):
         # Create Result object
         results_object = MLObject()
@@ -65,5 +65,5 @@ class StepExecution:
         results_object.data_schemas_path = return_dict["data_schemas_path"]
         results_object.feature_file_path = return_dict["feature_file_path"]
 
-        errors = results_object.validate() # noqa
+        _ = results_object.validate() # noqa
         return results_object

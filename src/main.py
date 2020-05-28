@@ -25,6 +25,7 @@ sys.path.append(str(Path.cwd().parent))
 from utils import (  # noqa
     report_found_params,
     raise_schema_mismatch,
+    setupLogger,
 )  # noqa
 from step_execution import StepExecution  # noqa
 
@@ -90,7 +91,7 @@ def main():
     ms = load_metastore_connection(metastore_credentials_packed)
     workflow_node_id = os.environ.get("INPUT_WORKFLOW_NODE_ID")
     if workflow_node_id == "":
-        raise ValueError(f"INPUT_WORKFLOW_NODE_ID - No workflow node id was provided.")
+        raise ValueError("INPUT_WORKFLOW_NODE_ID - No workflow node id was provided.")
     workflow_object = load_workflow_object(workflow_node_id, ms)
 
     rootLogger.debug("::debug::Loading input parameters")
@@ -188,39 +189,18 @@ def main():
         log_object, workflow_object.schema_version, workflow_node_id, step_name, "log"
     )
 
-    print(
+    rootLogger.critical(
         f"::set-output name=output_raw::{results_ml_object.dict_without_internal_variables()}"
     )
-    print(f"::set-output name=output_base64_encoded::{final_encode_to_utf8}")
-    print(f"::set-output name=input_node_id::{input_node_id}")
-    print(f"::set-output name=execution_node_id::{execution_node_id}")
-    print(f"::set-output name=output_node_id::{output_node_id}")
-    print(f"::set-output name=log_node_id::{log_node_id}")
+    rootLogger.critical(f"::set-output name=output_base64_encoded::{final_encode_to_utf8}")
+    rootLogger.critical(f"::set-output name=input_node_id::{input_node_id}")
+    rootLogger.critical(f"::set-output name=execution_node_id::{execution_node_id}")
+    rootLogger.critical(f"::set-output name=output_node_id::{output_node_id}")
+    rootLogger.critical(f"::set-output name=log_node_id::{log_node_id}")
 
 
 def repr_uuid(dumper, uuid_obj):
     return YAML.ScalarNode("tag:yaml.org,2002:str", str(uuid_obj))
-
-
-def setupLogger():
-    rootLogger = logging.getLogger()
-    rootLogger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(
-        "%(asctime)s - %(name)s - %(levelname)s - %(message)s\n"
-    )
-
-    buffer = StringIO()
-    bufferHandler = logging.StreamHandler(buffer)
-    bufferHandler.setLevel(logging.DEBUG)
-    bufferHandler.setFormatter(formatter)
-    rootLogger.addHandler(bufferHandler)
-
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setLevel(logging.DEBUG)
-    stdout_handler.setFormatter(formatter)
-    rootLogger.addHandler(stdout_handler)
-
-    return (rootLogger, buffer)
 
 
 def convert_environment_variables_to_dict():
@@ -272,7 +252,7 @@ def load_workflow_object(
         )
 
     if "steps" not in workflow_object:
-        raise ValueError(f"Workflow object does not contain the field 'steps'.")
+        raise ValueError("Workflow object does not contain the field 'steps'.")
 
     # Show count of errors, then errors
     rootLogger.debug(f"Workflow loading errors: {errors}")
@@ -401,7 +381,7 @@ def execute_step(
     )
 
     if results_ml_object is None or not isinstance(results_ml_object, MLObject):
-        raise ValueError(f"Execution failed to return an MLObject. Cannot save output.")
+        raise ValueError("Execution failed to return an MLObject. Cannot save output.")
 
     results_ml_object.run_id = run_id
     results_ml_object.step_id = str(uuid.uuid4())

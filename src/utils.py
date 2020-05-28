@@ -1,9 +1,7 @@
 import mlspeclib
 import logging
-
-
-class ConfigurationException(Exception):
-    pass
+from io import StringIO
+import sys
 
 
 def report_found_params(expected_params: list, offered_params: dict) -> None:
@@ -25,6 +23,27 @@ def raise_schema_mismatch(
     Expected Version: {expected_version}
     Actual Version: {actual_version}")"""
     )
+
+
+def setupLogger():
+    rootLogger = logging.getLogger()
+    rootLogger.setLevel(logging.WARN)
+    formatter = logging.Formatter(
+        "::%(levelname)s - %(message)s\n"
+    )
+
+    buffer = StringIO()
+    bufferHandler = logging.StreamHandler(buffer)
+    bufferHandler.setLevel(logging.WARN)
+    bufferHandler.setFormatter(formatter)
+    rootLogger.addHandler(bufferHandler)
+
+    stdout_handler = logging.StreamHandler(sys.stdout)
+    stdout_handler.setLevel(logging.WARN)
+    stdout_handler.setFormatter(formatter)
+    rootLogger.addHandler(stdout_handler)
+
+    return (rootLogger, buffer)
 
 
 # def get_best_run(experiment, run, pipeline_child_run_name=None):
