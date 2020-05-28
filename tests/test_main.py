@@ -16,10 +16,12 @@ from unittest import mock
 from box import Box
 import base64
 
+if Path('src').exists():
+    sys.path.append(str(Path('src')))
 sys.path.append(str(Path.cwd()))
 sys.path.append(str(Path.cwd().parent))
 
-from src.main import (  # noqa E402
+from main import (  # noqa E402
     main,
     setupLogger,
     convert_environment_variables_to_dict,
@@ -32,8 +34,7 @@ from src.main import (  # noqa E402
     load_parameters,
 )  # noqa E402
 
-from src.utils import ConfigurationException  # noqa E402
-from src.step_execution import StepExecution  # noqa E402
+from step_execution import StepExecution  # noqa E402
 
 
 class test_main(unittest.TestCase):
@@ -43,7 +44,7 @@ class test_main(unittest.TestCase):
         """
         Unit test to check the main function with no inputs
         """
-        with self.assertRaises(ConfigurationException):
+        with self.assertRaises(ValueError):
             main()
 
     @patch("sys.stdout", new_callable=io.StringIO)

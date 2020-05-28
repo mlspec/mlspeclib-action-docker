@@ -17,10 +17,12 @@ from git import GitCommandError
 from mlspeclib import MLObject, MLSchema
 from mlspeclib.experimental.metastore import Metastore
 
+if Path('src').exists():
+    sys.path.append(str(Path('src')))
 sys.path.append(str(Path.cwd()))
+sys.path.append(str(Path.cwd().parent))
 
 from utils import (
-    ConfigurationException,
     report_found_params,
     raise_schema_mismatch,
 )  # noqa
@@ -221,7 +223,7 @@ def convert_environment_variables_to_dict():
     for var in REQUIRED:
         return_dict[var] = os.environ.get(var, default=None)
         if return_dict[var] is None:
-            raise ConfigurationException(f"No value provided for {var}.")
+            raise ValueError(f"No value provided for {var}.")
 
     return return_dict
 

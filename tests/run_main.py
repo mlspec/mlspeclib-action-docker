@@ -14,9 +14,10 @@ import base64
 import tempfile
 import shutil
 
+if Path('src').exists():
+    sys.path.append(str(Path('src')))
 sys.path.append(str(Path.cwd().resolve()))
-import src  # noqa
-from src.main import main  # noqa
+from main import main  # noqa
 
 RUN_TYPES = ["main", "entrypoint.sh", "container interactive", "container pure"]
 RUN_TYPE = RUN_TYPES[os.environ.get('RUN_TYPE', 0)]
