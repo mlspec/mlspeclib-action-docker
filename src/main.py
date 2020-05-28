@@ -19,12 +19,12 @@ from mlspeclib.experimental.metastore import Metastore
 
 sys.path.append(str(Path.cwd()))
 
-from src.utils import (
+from utils import (
     ConfigurationException,
     report_found_params,
     raise_schema_mismatch,
 )  # noqa
-from src.step_execution import StepExecution  # noqa
+from step_execution import StepExecution  # noqa
 
 REQUIRED = [
     "INPUT_workflow_node_id",
