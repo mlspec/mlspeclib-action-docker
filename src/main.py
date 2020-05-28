@@ -264,8 +264,7 @@ def load_metastore_connection(credentials_packed: str):
 def load_workflow_object(
     workflow_node_id: str, metastore_connection: Metastore
 ) -> MLObject:
-    rootLogger = logging.getLogger()
-    rootLogger.setLevel(logging.DEBUG)
+    (rootLogger, _) = setupLogger()
     (workflow_object, errors) = metastore_connection.get_workflow_object(
         workflow_node_id
     )
@@ -333,7 +332,7 @@ def load_contract_object(
     Will fail if the .validate() fails on the object or the schema mismatches what is seen in the
     workflow.
     """
-    rootLogger = logging.getLogger()
+    (rootLogger, _) = setupLogger()
 
     if contract_type not in CONTRACT_TYPES:
         raise KnownException(
@@ -395,7 +394,6 @@ def execute_step(
     step_name,
     run_id,
 ):
-    # rootLogger = logging.getLogger()
     step_execution_object = StepExecution(input_object, execution_object)
     results_ml_object = step_execution_object.execute(
         result_object_schema_type=workflow_object.steps[step_name].output.schema_type,

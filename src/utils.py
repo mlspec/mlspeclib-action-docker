@@ -13,11 +13,12 @@ class KnownException(Exception):
     pass
 
 def report_found_params(expected_params: list, offered_params: dict) -> None:
+    (rootLogger, _) = setupLogger()
     for param in expected_params:
         if param not in offered_params or offered_params[param] is None:
             raise KnownException(f"No parameter set for {param}.")
         else:
-            logging.debug(f"Found value for {param}.")
+            rootLogger.debug(f"Found value for {param}.")
 
 
 def raise_schema_mismatch(
@@ -35,19 +36,19 @@ def raise_schema_mismatch(
 
 def setupLogger():
     rootLogger = logging.getLogger()
-    rootLogger.setLevel(logging.WARN)
+    rootLogger.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
         "::%(levelname)s - %(message)s\n"
     )
 
     buffer = StringIO()
     bufferHandler = logging.StreamHandler(buffer)
-    bufferHandler.setLevel(logging.WARN)
+    bufferHandler.setLevel(logging.DEBUG)
     bufferHandler.setFormatter(formatter)
     rootLogger.addHandler(bufferHandler)
 
     stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setLevel(logging.WARN)
+    stdout_handler.setLevel(logging.DEBUG)
     stdout_handler.setFormatter(formatter)
     rootLogger.addHandler(stdout_handler)
 
