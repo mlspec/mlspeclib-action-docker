@@ -10,6 +10,7 @@ from io import StringIO
 import datetime
 import uuid
 import marshmallow
+from marshmallow.class_registry import RegistryError
 import base64
 import git
 from git import GitCommandError
@@ -26,6 +27,7 @@ from utils import (  # noqa
     report_found_params,
     raise_schema_mismatch,
     setupLogger,
+    KnownException
 )  # noqa
 from step_execution import StepExecution  # noqa
 
@@ -41,9 +43,32 @@ CONTRACT_TYPES = ["input", "execution", "output", "log"]
 rootLogger = None
 logBuffer = None
 
-
 def main():
+    (rootLogger, _) = setupLogger()
 
+    try:
+        sub_main()
+    except KnownException as ve:
+        rootLogger.critical(str(ve))
+        exit(1)
+    except KeyError as ke:
+        matches = ["url", "key", "database_name", "container_name"]
+        if any(x in str(ke) for x in matches):
+            rootLogger.critical(str(ke))
+            exit(1)
+        else:
+            raise ke
+    except FileNotFoundError as fnfe:
+        if 'No files ending in' in str(fnfe):
+            rootLogger.critical(str(fnfe))
+            exit(1)
+        else:
+            raise fnfe
+    except RegistryError as re:
+        rootLogger.critical(str(re))
+        exit(1)
+
+def sub_main():
     (rootLogger, logBuffer) = setupLogger()
 
     # Loading input values
@@ -61,7 +86,7 @@ def main():
             )
             # TODO: Authenticate with GH Token?
         except GitCommandError as gce:
-            raise ValueError(
+            raise KnownException(
                 f"Trying to read from the git repo ({parameters.INPUT_SCHEMAS_GIT_URL}) and write to the directory ({parameters.INPUT_SCHEMAS_DIRECTORY}). Full error follows: {str(gce)}"
             )
 
@@ -91,7 +116,7 @@ def main():
     ms = load_metastore_connection(metastore_credentials_packed)
     workflow_node_id = os.environ.get("INPUT_WORKFLOW_NODE_ID")
     if workflow_node_id == "":
-        raise ValueError("INPUT_WORKFLOW_NODE_ID - No workflow node id was provided.")
+        raise KnownException("INPUT_WORKFLOW_NODE_ID - No workflow node id was provided.")
     workflow_object = load_workflow_object(workflow_node_id, ms)
 
     rootLogger.debug("::debug::Loading input parameters")
@@ -209,7 +234,7 @@ def convert_environment_variables_to_dict():
     for var in REQUIRED:
         return_dict[var] = os.environ.get(var, "")
         if return_dict[var] == "":
-            raise ValueError(f"No value provided for {var}.")
+            raise KnownException(f"No value provided for {var}.")
 
     return return_dict
 
@@ -220,14 +245,14 @@ def verify_parameters_folder_and_file_exist(
     full_params_dir = Path(workspace_directory) / parameters_directory
 
     if not full_params_dir.exists():
-        raise ValueError(
+        raise KnownException(
             f"{parameters_directory} was not found in the workspace directory {workspace_directory}"
         )
 
     full_file_location = full_params_dir / parameters_file
 
     if not full_file_location.exists():
-        raise ValueError(f"{full_file_location.resolve()} was not found.")
+        raise KnownException(f"{full_file_location.resolve()} was not found.")
 
     return True
 
@@ -247,12 +272,12 @@ def load_workflow_object(
     rootLogger.setLevel(logging.DEBUG)
 
     if workflow_object is None:
-        raise ValueError(
+        raise KnownException(
             f"No workflow loaded when attempting to load workflow node id: {workflow_node_id}"
         )
 
     if "steps" not in workflow_object:
-        raise ValueError("Workflow object does not contain the field 'steps'.")
+        raise KnownException("Workflow object does not contain the field 'steps'.")
 
     # Show count of errors, then errors
     rootLogger.debug(f"Workflow loading errors: {errors}")
@@ -263,9 +288,9 @@ def load_workflow_object(
 
 
 def load_parameters(contract_type: str, metastore_connection: Metastore):
-    """ Loads parameters for 'INPUT' or 'EXECUTION' from one of metastore, file path, base64 encoded string or raw parameters. If more than one are set, the first available in this list overrides. If none are set, raises a ValueError."""
+    """ Loads parameters for 'INPUT' or 'EXECUTION' from one of metastore, file path, base64 encoded string or raw parameters. If more than one are set, the first available in this list overrides. If none are set, raises a KnownException."""
     if contract_type not in ["INPUT", "EXECUTION"]:
-        raise ValueError(f"{contract_type} is not either 'INPUT' or 'EXECUTION'")
+        raise KnownException(f"{contract_type} is not either 'INPUT' or 'EXECUTION'")
 
     parameters_raw = os.environ.get(f"INPUT_{contract_type}_PARAMETERS_RAW", "")
     parameters_base64 = os.environ.get(f"INPUT_{contract_type}_PARAMETERS_BASE64", "")
@@ -285,7 +310,7 @@ def load_parameters(contract_type: str, metastore_connection: Metastore):
             file_contents = file_path.read_text()
             return YAML.safe_load(file_contents)
         else:
-            raise ValueError(
+            raise KnownException(
                 f"'{str(file_path)}' was provided as an input for the '{contract_type}' parameter of this step, but that file does not exist."
             )
     elif parameters_base64 != "":
@@ -294,7 +319,7 @@ def load_parameters(contract_type: str, metastore_connection: Metastore):
     elif parameters_raw != "":
         return YAML.safe_load(parameters_raw)
     else:
-        raise ValueError(
+        raise KnownException(
             f"No values were set for '{contract_type}'. Was expecting one of INPUT_{contract_type}_PARAMETERS_RAW, INPUT_{contract_type}_PARAMETERS_FILE_PATH, INPUT_{contract_type}_PARAMETERS_BASE64,  INPUT_{contract_type}_PARAMETERS_NODE_ID to be available in the environment variables."
         )
 
@@ -312,7 +337,7 @@ def load_contract_object(
     rootLogger = logging.getLogger()
 
     if contract_type not in CONTRACT_TYPES:
-        raise ValueError(
+        raise KnownException(
             f"{contract_type} not in the expected list of contract types: {CONTRACT_TYPES}."
         )
 
@@ -321,7 +346,7 @@ def load_contract_object(
     elif isinstance(parameters, str):
         parameters_string = parameters
     else:
-        raise ValueError(
+        raise KnownException(
             f"load_contract_object was called with neither a string nor a dict. Value: {parameters}"
         )
 
@@ -329,15 +354,15 @@ def load_contract_object(
 
     if errors is not None and len(errors) > 0:
         rootLogger.debug(f"{contract_type} object loading errors: {errors}")
-        raise ValueError(
+        raise KnownException(
             f"Error when trying to validate the contract object {step_name}.{contract_type}. Errors: {errors}"
         )
 
     if step_name not in workflow_object["steps"]:
-        raise ValueError(f"Workflow object does not contain the step '{step_name}'.")
+        raise KnownException(f"Workflow object does not contain the step '{step_name}'.")
 
     if contract_type not in workflow_object["steps"][step_name]:
-        raise ValueError(
+        raise KnownException(
             f"Workflow object for step '{step_name}' does not contain a spec for the contract type: '{contract_type}'."
         )
 
@@ -381,7 +406,7 @@ def execute_step(
     )
 
     if results_ml_object is None or not isinstance(results_ml_object, MLObject):
-        raise ValueError("Execution failed to return an MLObject. Cannot save output.")
+        raise KnownException("Execution failed to return an MLObject. Cannot save output.")
 
     results_ml_object.run_id = run_id
     results_ml_object.step_id = str(uuid.uuid4())

@@ -16,6 +16,7 @@ from unittest import mock
 from unittest.mock import Mock
 from box import Box
 import base64
+from marshmallow.class_registry import RegistryError
 
 if Path("src").exists():
     sys.path.append(str(Path("src")))
@@ -31,10 +32,10 @@ from main import (  # noqa E402
     load_workflow_object,
     load_contract_object,
     execute_step,
-    load_parameters,
+    load_parameters
 )
 
-from utils import setupLogger  # noqa E402
+from utils import setupLogger, KnownException # noqa E402
 
 from step_execution import StepExecution  # noqa E402
 
@@ -42,12 +43,16 @@ from step_execution import StepExecution  # noqa E402
 class test_main(unittest.TestCase):
     """Main test cases."""
 
-    def test_main_no_input(self):
+    @patch("sys.stdout", new_callable=io.StringIO)
+    def test_main_no_input(self, mock_stdout):
         """
         Unit test to check the main function with no inputs
         """
-        with self.assertRaises(ValueError):
+        with self.assertRaises(SystemExit) as context:
             main()
+
+        self.assertEqual(context.exception.code, 1)
+        self.assertTrue("No value provided for" in str(mock_stdout.getvalue()))
 
     @patch("sys.stdout", new_callable=io.StringIO)
     def test_setup_logger_returns(self, mock_stdout):
@@ -55,7 +60,7 @@ class test_main(unittest.TestCase):
         self.assertTrue(rootLogger, logging.getLogger())
 
         message_string = "Test log message"
-        rootLogger.warn(message_string)
+        rootLogger.warning(message_string)
 
         return_string = mock_stdout.getvalue()
         assert message_string in return_string
@@ -83,13 +88,14 @@ class test_main(unittest.TestCase):
                 mock_dict["INPUT_STEP_NAME"] == return_dict["INPUT_STEP_NAME"]
             )
 
-    def test_report_found_params(self):
+    @patch("sys.stdout", new_callable=io.StringIO)
+    def test_report_found_params(self, mock_stdout):
         string_name = "parameter_name"
         dict_to_validate = {string_name: "VALUE"}
         report_found_params([string_name], dict_to_validate)
 
         dict_to_validate.pop(string_name)
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(KnownException) as context:
             report_found_params([string_name], dict_to_validate)
 
         self.assertTrue(string_name in str(context.exception))
@@ -107,7 +113,8 @@ class test_main(unittest.TestCase):
         base64_string = str(base64.urlsafe_b64encode(encoded_string), "utf-8")
         return base64_string
 
-    def test_connect_to_metastore(self):
+    @patch("sys.stdout", new_callable=io.StringIO)
+    def test_connect_to_metastore(self, mock_stdout):
         with patch.object(gremlin_python.driver.client, "Client") as mock_connect:
             mock_connect.return_value = True
             cred_dict = {}
@@ -140,14 +147,14 @@ class test_main(unittest.TestCase):
         ) as mock_metastore:
             mock_metastore.get_workflow_object.return_value = (None, None)
 
-            with self.assertRaises(ValueError) as context:
+            with self.assertRaises(KnownException) as context:
                 load_workflow_object("0.0.1", mock_metastore)
 
             self.assertTrue("load workflow" in str(context.exception))
 
             workflow_object = MLObject()
             mock_metastore.get_workflow_object.return_value = (workflow_object, None)
-            with self.assertRaises(ValueError) as context:
+            with self.assertRaises(KnownException) as context:
                 load_workflow_object("0.0.1", mock_metastore)
             self.assertTrue("field 'steps'" in str(context.exception))
 
@@ -159,7 +166,7 @@ class test_main(unittest.TestCase):
             self.assertTrue(isinstance(return_object, MLObject))
 
     def test_load_contract_object_bad_contract(self):
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(KnownException) as context:
             load_contract_object(None, None, None, "bad_contract")
 
         self.assertTrue("bad_contract" in str(context.exception))
@@ -169,7 +176,7 @@ class test_main(unittest.TestCase):
             mlspeclib.mlobject.MLObject, "create_object_from_string"
         ) as mock_mlobject:
             mock_mlobject.return_value = (None, "error")
-            with self.assertRaises(ValueError) as context:
+            with self.assertRaises(KnownException) as context:
                 load_contract_object("FAKEFIELD: FAKEVALUE", None, None, "input")
 
             self.assertTrue("validate the contract" in str(context.exception))
@@ -179,7 +186,7 @@ class test_main(unittest.TestCase):
             mlspeclib.mlobject.MLObject, "create_object_from_string"
         ) as mock_mlobject:
             mock_mlobject.return_value = (None, None)
-            with self.assertRaises(ValueError) as context:
+            with self.assertRaises(KnownException) as context:
                 load_contract_object(
                     "FAKEFIELD: FAKEVALUE", {"steps": {}}, None, "input"
                 )
@@ -191,7 +198,7 @@ class test_main(unittest.TestCase):
             mlspeclib.mlobject.MLObject, "create_object_from_string"
         ) as mock_mlobject:
             mock_mlobject.return_value = (None, None)
-            with self.assertRaises(ValueError) as context:
+            with self.assertRaises(KnownException) as context:
                 load_contract_object(
                     "FAKEFIELD: FAKEVALUE",
                     {"steps": {"step_name": "NO_CONTRACT"}},
@@ -212,7 +219,7 @@ class test_main(unittest.TestCase):
                 ),
                 None,
             )
-            with self.assertRaises(ValueError) as context:
+            with self.assertRaises(KnownException) as context:
                 load_contract_object(
                     "FAKEFIELD: FAKEVALUE",
                     {
@@ -242,7 +249,7 @@ class test_main(unittest.TestCase):
                 ),
                 None,
             )
-            with self.assertRaises(ValueError) as context:
+            with self.assertRaises(KnownException) as context:
                 load_contract_object(
                     "FAKEFIELD: FAKEVALUE",
                     {
@@ -267,7 +274,7 @@ class test_main(unittest.TestCase):
         workflow_box = Box({"steps": {"FAKESTEP": {"output": {}}}})
         workflow_box.steps.FAKESTEP.output.schema_type = "FAKETYPE"
         workflow_box.steps.FAKESTEP.output.schema_version = "0.0.1"
-        with self.assertRaises(ValueError) as context:
+        with self.assertRaises(KnownException) as context:
             execute_step(workflow_box, None, None, "FAKESTEP", None)
 
         self.assertTrue("Cannot save output" in str(context.exception))
@@ -279,7 +286,7 @@ class test_main(unittest.TestCase):
 
         os.environ[f"INPUT_{contract_type}_parameters_file_path"] = "FAKEPATH"
 
-        with self.assertRaises(ValueError):
+        with self.assertRaises(KnownException):
             load_parameters(contract_type, False)
 
     @unittest.skip("Need to fix path mocks")
@@ -288,17 +295,33 @@ class test_main(unittest.TestCase):
         os.environ[f"INPUT_{contract_type}_PARAMETERS_FILE_PATH"] = "FAKEPATH"
         expected_dict = YAML.safe_load("FAKEFIELD: 'FAKEVALUE'")
 
-        mock_path = Mock()
-        mock_path.exists.return_value = True
-        mock_path.read_text.return_value = '{"FAKEFIELD": "FAKEVALUE"}'
-
-        with patch("Path", return_value=mock_path):
+        with patch.object(pathlib, "Path", return_value=MagicMock()) as mock_path:
             mock_path.exists.return_value = True
             mock_path.read_text.return_value = 'FAKEFIELD": "FAKEVALUE"'
 
             return_dict = load_parameters(contract_type, None)
 
         self.assertTrue(return_dict["FAKEFIELD"] == expected_dict["FAKEFIELD"])
+
+    @patch("sys.stdout", new_callable=io.StringIO)
+    def test_registry_error_catcher(self, mock_stdout, *mock_patched_obj):
+        mock_variables = """\
+            INPUT_WORKFLOW_NODE_ID: 'xxxxx'
+            INPUT_STEP_NAME: 'process_data'
+            INPUT_PARAMETERS_DIRECTORY: '.parameters'
+            INPUT_EXECUTION_PARAMETERS: 'tests/execution_parameters.yaml'
+            INPUT_SCHEMAS_DIRECTORY: 'tests/bad_schemas/bad_base'
+            INPUT_INPUT_PARAMETERS_RAW: 'input_parameters'
+            GITHUB_RUN_ID: 'github_run_id'
+            GITHUB_WORKSPACE: 'github_workspace'
+            INPUT_METASTORE_CREDENTIALS: 'a: b'"""
+
+        mock_dict = YAML.safe_load(mock_variables)
+        with patch.dict(os.environ, mock_dict):
+            with self.assertRaises(SystemExit):
+                main()
+
+            self.assertTrue("Could not find the base schema" in str(mock_stdout.getvalue()))
 
 
 if __name__ == "__main__":

@@ -18,6 +18,7 @@ from utils import ( # noqa
     report_found_params,
     raise_schema_mismatch,
     setupLogger,
+    KnownException,
 )
 
 
@@ -42,7 +43,7 @@ class StepExecution:
         if self.execution_params is not None:
             self.logger.debug(f"Execution params: {self.execution_params}")
         else:
-            raise ValueError("No execution parameters provided.")
+            raise KnownException("No execution parameters provided.")
 
     def execute(self, result_object_schema_type, result_object_schema_version):
         # Create Result object

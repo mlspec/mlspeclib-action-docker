@@ -2,12 +2,20 @@ import mlspeclib
 import logging
 from io import StringIO
 import sys
+from pathlib import Path
 
+if Path("src").exists():
+    sys.path.append(str(Path("src")))
+sys.path.append(str(Path.cwd()))
+sys.path.append(str(Path.cwd().parent))
+
+class KnownException(Exception):
+    pass
 
 def report_found_params(expected_params: list, offered_params: dict) -> None:
     for param in expected_params:
         if param not in offered_params or offered_params[param] is None:
-            raise ValueError(f"No parameter set for {param}.")
+            raise KnownException(f"No parameter set for {param}.")
         else:
             logging.debug(f"Found value for {param}.")
 
@@ -15,7 +23,7 @@ def report_found_params(expected_params: list, offered_params: dict) -> None:
 def raise_schema_mismatch(
     expected_type: str, expected_version: str, actual_type: str, actual_version: str
 ):
-    raise ValueError(
+    raise KnownException(
         f"""Actual data does not match the expected schema and version:
     Expected Type: {expected_type}
     Actual Type: {actual_type}
