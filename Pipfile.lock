@@ -63,11 +63,11 @@
         },
         "mlspeclib": {
             "hashes": [
-                "sha256:3ee22a2abc2bc7284416ce9a4fc8851776da9ec84dd0069c51d8fa4b58b20a62",
-                "sha256:dd9c703eeabaea614baf9d1656bcad8f3d891546d87db88817a2aec772f8ebf7"
+                "sha256:19a1d82ca152bffc906676473b3433964516458e693433ebf3a614ec57e25ed6",
+                "sha256:f05d7ab64112491d9a11f49bf45c9a56c5e8aa54fdd25189a033033d76290ddf"
             ],
             "index": "pypi",
-            "version": "==0.0.21"
+            "version": "==0.0.22"
         },
         "msgpack": {
             "hashes": [
