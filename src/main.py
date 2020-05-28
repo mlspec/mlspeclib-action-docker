@@ -50,11 +50,9 @@ def main():
 
     parameters = convert_environment_variables_to_dict()
 
-    parameters.INPUT_SCHEMAS_DIRECTORY = os.environ.get(
-        "INPUT_SCHEMAS_DIRECTORY", ".parameters/schemas"
-    )
+    parameters.INPUT_SCHEMAS_DIRECTORY = os.environ.get("INPUT_SCHEMAS_DIRECTORY")
 
-    if "INPUT_SCHEMAS_GIT_URL" in os.environ:
+    if "INPUT_SCHEMAS_GIT_URL" in os.environ and os.environ.get != "":
         parameters.INPUT_SCHEMAS_GIT_URL = os.environ.get("INPUT_SCHEMAS_GIT_URL")
         try:
             git.Git(parameters.INPUT_SCHEMAS_DIRECTORY).clone(
@@ -68,18 +66,14 @@ def main():
 
     MLSchema.append_schema_to_registry(Path(parameters.INPUT_SCHEMAS_DIRECTORY))
 
-    parameters.previous_step_name = os.environ.get(
-        "INPUT_PREVIOUS_STEP_NAME", default=None
-    )
-    parameters.next_step_name = os.environ.get("INPUT_NEXT_STEP_NAME", default=None)
+    parameters.previous_step_name = os.environ.get("INPUT_PREVIOUS_STEP_NAME", "")
+    parameters.next_step_name = os.environ.get("INPUT_NEXT_STEP_NAME", "")
     rootLogger.debug("::debug:: Finished main")
 
     # Load metastore credentials
 
     rootLogger.debug("::debug:: Loading credentials")
-    metastore_cred_string_blob = os.environ.get(
-        "INPUT_METASTORE_CREDENTIALS", default="{}"
-    )
+    metastore_cred_string_blob = os.environ.get("INPUT_METASTORE_CREDENTIALS")
 
     metastore_credentials_packed = YAML.safe_load(metastore_cred_string_blob)
     metastore_credentials_string = base64.urlsafe_b64decode(
@@ -95,7 +89,7 @@ def main():
 
     ms = load_metastore_connection(metastore_credentials_packed)
     workflow_node_id = os.environ.get("INPUT_WORKFLOW_NODE_ID")
-    if workflow_node_id is None:
+    if workflow_node_id == "":
         raise ValueError(f"INPUT_WORKFLOW_NODE_ID - No workflow node id was provided.")
     workflow_object = load_workflow_object(workflow_node_id, ms)
 
@@ -233,8 +227,8 @@ def convert_environment_variables_to_dict():
     return_dict = Box()
 
     for var in REQUIRED:
-        return_dict[var] = os.environ.get(var, default=None)
-        if return_dict[var] is None:
+        return_dict[var] = os.environ.get(var, "")
+        if return_dict[var] == "":
             raise ValueError(f"No value provided for {var}.")
 
     return return_dict
@@ -293,19 +287,19 @@ def load_parameters(contract_type: str, metastore_connection: Metastore):
     if contract_type not in ["INPUT", "EXECUTION"]:
         raise ValueError(f"{contract_type} is not either 'INPUT' or 'EXECUTION'")
 
-    parameters_raw = os.environ.get(f"INPUT_{contract_type}_PARAMETERS_RAW", None)
-    parameters_base64 = os.environ.get(f"INPUT_{contract_type}_PARAMETERS_BASE64", None)
+    parameters_raw = os.environ.get(f"INPUT_{contract_type}_PARAMETERS_RAW", "")
+    parameters_base64 = os.environ.get(f"INPUT_{contract_type}_PARAMETERS_BASE64", "")
     parameters_node_id = os.environ.get(
-        f"INPUT_{contract_type}_PARAMETERS_NODE_ID", None
+        f"INPUT_{contract_type}_PARAMETERS_NODE_ID", ""
     )
     parameters_file_path = os.environ.get(
-        f"INPUT_{contract_type}_PARAMETERS_FILE_PATH", None
+        f"INPUT_{contract_type}_PARAMETERS_FILE_PATH", ""
     )
 
-    if parameters_node_id is not None:
+    if parameters_node_id != "":
         contract_object = metastore_connection.get_object(parameters_node_id)
         return contract_object.dict_without_internal_variables()
-    elif parameters_file_path is not None:
+    elif parameters_file_path != "":
         file_path = Path(parameters_file_path)
         if file_path.exists():
             file_contents = file_path.read_text()
@@ -314,10 +308,10 @@ def load_parameters(contract_type: str, metastore_connection: Metastore):
             raise ValueError(
                 f"'{str(file_path)}' was provided as an input for the '{contract_type}' parameter of this step, but that file does not exist."
             )
-    elif parameters_base64 is not None:
+    elif parameters_base64 != "":
         base64_decode = base64.urlsafe_b64decode(parameters_base64)
         return YAML.safe_load(base64_decode)
-    elif parameters_raw is not None:
+    elif parameters_raw != "":
         return YAML.safe_load(parameters_raw)
     else:
         raise ValueError(
