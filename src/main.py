@@ -17,20 +17,20 @@ from git import GitCommandError
 from mlspeclib import MLObject, MLSchema
 from mlspeclib.experimental.metastore import Metastore
 
-if Path('src').exists():
-    sys.path.append(str(Path('src')))
+if Path("src").exists():
+    sys.path.append(str(Path("src")))
 sys.path.append(str(Path.cwd()))
 sys.path.append(str(Path.cwd().parent))
 
-from utils import (
+from utils import (  # noqa
     report_found_params,
     raise_schema_mismatch,
 )  # noqa
 from step_execution import StepExecution  # noqa
 
 REQUIRED = [
-    "INPUT_workflow_node_id",
-    "INPUT_step_name",
+    "INPUT_WORKFLOW_NODE_ID",
+    "INPUT_STEP_NAME",
     "INPUT_METASTORE_CREDENTIALS",
     "GITHUB_RUN_ID",
     "GITHUB_WORKSPACE",
@@ -50,22 +50,28 @@ def main():
 
     parameters = convert_environment_variables_to_dict()
 
-    parameters.INPUT_schemas_directory = os.environ.get("INPUT_schemas_directory", ".parameters/schemas")
+    parameters.INPUT_SCHEMAS_DIRECTORY = os.environ.get(
+        "INPUT_SCHEMAS_DIRECTORY", ".parameters/schemas"
+    )
 
-    if "INPUT_schemas_git_url" in os.environ:
-        parameters.INPUT_schemas_git_url = os.environ.get("INPUT_schemas_git_url")
+    if "INPUT_SCHEMAS_GIT_URL" in os.environ:
+        parameters.INPUT_SCHEMAS_GIT_URL = os.environ.get("INPUT_SCHEMAS_GIT_URL")
         try:
-            git.Git(parameters.INPUT_schemas_directory).clone(parameters.INPUT_schemas_git_url, str(uuid.uuid4()), depth=1)
+            git.Git(parameters.INPUT_SCHEMAS_DIRECTORY).clone(
+                parameters.INPUT_SCHEMAS_GIT_URL, str(uuid.uuid4()), depth=1
+            )
             # TODO: Authenticate with GH Token?
         except GitCommandError as gce:
-            raise ValueError(f"Trying to read from the git repo ({parameters.INPUT_schemas_git_url}) and write to the directory ({parameters.INPUT_schemas_directory}). Full error follows: {str(gce)}")
+            raise ValueError(
+                f"Trying to read from the git repo ({parameters.INPUT_SCHEMAS_GIT_URL}) and write to the directory ({parameters.INPUT_SCHEMAS_DIRECTORY}). Full error follows: {str(gce)}"
+            )
 
-    MLSchema.append_schema_to_registry(Path(parameters.INPUT_schemas_directory))
+    MLSchema.append_schema_to_registry(Path(parameters.INPUT_SCHEMAS_DIRECTORY))
 
     parameters.previous_step_name = os.environ.get(
-        "INPUT_previous_step_name", default=None
+        "INPUT_PREVIOUS_STEP_NAME", default=None
     )
-    parameters.next_step_name = os.environ.get("INPUT_next_step_name", default=None)
+    parameters.next_step_name = os.environ.get("INPUT_NEXT_STEP_NAME", default=None)
     rootLogger.debug("::debug:: Finished main")
 
     # Load metastore credentials
@@ -76,7 +82,9 @@ def main():
     )
 
     metastore_credentials_packed = YAML.safe_load(metastore_cred_string_blob)
-    metastore_credentials_string = base64.urlsafe_b64decode(metastore_credentials_packed).decode('utf-8')
+    metastore_credentials_string = base64.urlsafe_b64decode(
+        metastore_credentials_packed
+    ).decode("utf-8")
     metastore_credentials = YAML.safe_load(metastore_credentials_string)
 
     report_found_params(
@@ -86,18 +94,18 @@ def main():
     rootLogger.debug("::debug::Starting metastore connection")
 
     ms = load_metastore_connection(metastore_credentials_packed)
-    workflow_node_id = os.environ.get("INPUT_workflow_node_id")
+    workflow_node_id = os.environ.get("INPUT_WORKFLOW_NODE_ID")
     if workflow_node_id is None:
-        raise ValueError(f"INPUT_workflow_node_id - No workflow node id was provided.")
+        raise ValueError(f"INPUT_WORKFLOW_NODE_ID - No workflow node id was provided.")
     workflow_object = load_workflow_object(workflow_node_id, ms)
 
     rootLogger.debug("::debug::Loading input parameters")
-    input_parameters = load_parameters('input', ms)
+    input_parameters = load_parameters("INPUT", ms)
 
     rootLogger.debug("::debug::Loading execution parameters file")
-    execution_parameters = load_parameters('execution', ms)
+    execution_parameters = load_parameters("EXECUTION", ms)
 
-    step_name = parameters.INPUT_step_name
+    step_name = parameters.INPUT_STEP_NAME
     input_object = load_contract_object(
         parameters=input_parameters,
         workflow_object=workflow_object,
@@ -186,15 +194,19 @@ def main():
         log_object, workflow_object.schema_version, workflow_node_id, step_name, "log"
     )
 
-    print(f"::set-output name=output_raw::{results_ml_object.dict_without_internal_variables()}")
+    print(
+        f"::set-output name=output_raw::{results_ml_object.dict_without_internal_variables()}"
+    )
     print(f"::set-output name=output_base64_encoded::{final_encode_to_utf8}")
     print(f"::set-output name=input_node_id::{input_node_id}")
     print(f"::set-output name=execution_node_id::{execution_node_id}")
     print(f"::set-output name=output_node_id::{output_node_id}")
     print(f"::set-output name=log_node_id::{log_node_id}")
 
+
 def repr_uuid(dumper, uuid_obj):
     return YAML.ScalarNode("tag:yaml.org,2002:str", str(uuid_obj))
+
 
 def setupLogger():
     rootLogger = logging.getLogger()
@@ -275,15 +287,20 @@ def load_workflow_object(
     else:
         return workflow_object
 
-def load_parameters(contract_type: str, metastore_connection: Metastore):
-    """ Loads parameters for 'input' or 'execution' from one of metastore, file path, base64 encoded string or raw parameters. If more than one are set, the first available in this list overrides. If none are set, raises a ValueError."""
-    if contract_type not in ['input', 'execution']:
-        raise ValueError(f"{contract_type} is not either 'input' or 'execution'")
 
-    parameters_raw = os.environ.get(f"INPUT_{contract_type}_parameters_raw", None)
-    parameters_base64 = os.environ.get(f"INPUT_{contract_type}_parameters_base64", None)
-    parameters_node_id = os.environ.get(f"INPUT_{contract_type}_parameters_node_id", None)
-    parameters_file_path = os.environ.get(f"INPUT_{contract_type}_parameters_file_path", None)
+def load_parameters(contract_type: str, metastore_connection: Metastore):
+    """ Loads parameters for 'INPUT' or 'EXECUTION' from one of metastore, file path, base64 encoded string or raw parameters. If more than one are set, the first available in this list overrides. If none are set, raises a ValueError."""
+    if contract_type not in ["INPUT", "EXECUTION"]:
+        raise ValueError(f"{contract_type} is not either 'INPUT' or 'EXECUTION'")
+
+    parameters_raw = os.environ.get(f"INPUT_{contract_type}_PARAMETERS_RAW", None)
+    parameters_base64 = os.environ.get(f"INPUT_{contract_type}_PARAMETERS_BASE64", None)
+    parameters_node_id = os.environ.get(
+        f"INPUT_{contract_type}_PARAMETERS_NODE_ID", None
+    )
+    parameters_file_path = os.environ.get(
+        f"INPUT_{contract_type}_PARAMETERS_FILE_PATH", None
+    )
 
     if parameters_node_id is not None:
         contract_object = metastore_connection.get_object(parameters_node_id)
@@ -294,14 +311,19 @@ def load_parameters(contract_type: str, metastore_connection: Metastore):
             file_contents = file_path.read_text()
             return YAML.safe_load(file_contents)
         else:
-            raise ValueError(f"'{str(file_path)}' was provided as an input for the '{contract_type}' parameter of this step, but that file does not exist.")
+            raise ValueError(
+                f"'{str(file_path)}' was provided as an input for the '{contract_type}' parameter of this step, but that file does not exist."
+            )
     elif parameters_base64 is not None:
         base64_decode = base64.urlsafe_b64decode(parameters_base64)
         return YAML.safe_load(base64_decode)
     elif parameters_raw is not None:
         return YAML.safe_load(parameters_raw)
     else:
-        raise ValueError(f"No values were set for '{contract_type}'. Was expecting one of INPUT_{contract_type}_parameters_raw, INPUT_{contract_type}_parameters_base64,  INPUT_{contract_type}_parameters_node_id to be available in the environment variables.")
+        raise ValueError(
+            f"No values were set for '{contract_type}'. Was expecting one of INPUT_{contract_type}_PARAMETERS_RAW, INPUT_{contract_type}_PARAMETERS_FILE_PATH, INPUT_{contract_type}_PARAMETERS_BASE64,  INPUT_{contract_type}_PARAMETERS_NODE_ID to be available in the environment variables."
+        )
+
 
 # TODO Break down into verifying contract_type, verify workflow object, and then verify just the MLObject
 def load_contract_object(
@@ -325,7 +347,9 @@ def load_contract_object(
     elif isinstance(parameters, str):
         parameters_string = parameters
     else:
-        raise ValueError(f'load_contract_object was called with neither a string nor a dict. Value: {parameters}')
+        raise ValueError(
+            f"load_contract_object was called with neither a string nor a dict. Value: {parameters}"
+        )
 
     (contract_object, errors) = MLObject.create_object_from_string(parameters_string)
 

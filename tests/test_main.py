@@ -64,12 +64,12 @@ class test_main(unittest.TestCase):
 
     def test_convert_environment_variables(self):
         mock_variables = """\
-            INPUT_workflow_node_id: 'xxxxx'
-            INPUT_step_name: 'process_data'
-            INPUT_parameters_directory: '.parameters'
-            INPUT_execution_parameters: 'tests/execution_parameters.yaml'
-            INPUT_schemas_directory: 'tests/workflow_schemas'
-            INPUT_input_parameters_raw: 'input_parameters'
+            INPUT_WORKFLOW_NODE_ID: 'xxxxx'
+            INPUT_STEP_NAME: 'process_data'
+            INPUT_PARAMETERS_DIRECTORY: '.parameters'
+            INPUT_EXECUTION_PARAMETERS: 'tests/execution_parameters.yaml'
+            INPUT_SCHEMAS_DIRECTORY: 'tests/workflow_schemas'
+            INPUT_INPUT_PARAMETERS_RAW: 'input_parameters'
             GITHUB_RUN_ID: 'github_run_id'
             GITHUB_WORKSPACE: 'github_workspace'
             INPUT_METASTORE_CREDENTIALS: 'a: b\nc: d'"""
@@ -78,7 +78,7 @@ class test_main(unittest.TestCase):
         with patch.dict(os.environ, mock_dict):
             return_dict = convert_environment_variables_to_dict()
             self.assertTrue(
-                mock_dict["INPUT_step_name"] == return_dict["INPUT_step_name"]
+                mock_dict["INPUT_STEP_NAME"] == return_dict["INPUT_STEP_NAME"]
             )
 
     def test_report_found_params(self):

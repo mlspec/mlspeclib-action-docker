@@ -14,7 +14,7 @@ import uuid
 from mlspeclib import MLObject, MLSchema
 from mlspeclib.experimental.metastore import Metastore
 
-from utils import (
+from utils import ( # noqa
     report_found_params,
     raise_schema_mismatch,
 )

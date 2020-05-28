@@ -61,7 +61,7 @@ credentials_packed = parameters['INPUT_METASTORE_CREDENTIALS']
 
 ms = Metastore(credentials_packed)
 
-workflow_dict = parameters['INPUT_workflow']
+workflow_dict = parameters['INPUT_WORKFLOW']
 workflow_dict["workflow_version"] = str('999999999999.9.' + str(random.randint(0, 9999)))
 workflow_dict["run_id"] = str(uuid.uuid4())
 workflow_dict["step_id"] = str(uuid.uuid4())
@@ -73,7 +73,7 @@ MLSchema.append_schema_to_registry(Path('tests/schemas'))
 if len(err) != 0:
     raise ValueError(f"Error creating mock workflow_object. Errors: {err}")
 
-parameters['INPUT_workflow_node_id'] = ms.create_workflow_node(workflow_object, str(uuid.uuid4()))
+parameters['INPUT_WORKFLOW_NODE_ID'] = ms.create_workflow_node(workflow_object, str(uuid.uuid4()))
 
 parameters["GITHUB_RUN_ID"] = workflow_dict["run_id"]
 parameters["GITHUB_WORKSPACE"] = '/src'
@@ -109,7 +109,7 @@ elif RUN_TYPE == "container interactive" or RUN_TYPE == "container pure":
 #    print(exec_statement)
     os.system(exec_statement)
 
-p = Path(parameters['INPUT_schemas_directory'])
+p = Path(parameters['INPUT_SCHEMAS_DIRECTORY'])
 for x in p.iterdir():
     if x.is_dir():
         shutil.rmtree(str(x.resolve()), ignore_errors=True)
