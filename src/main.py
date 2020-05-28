@@ -265,11 +265,10 @@ def load_workflow_object(
     workflow_node_id: str, metastore_connection: Metastore
 ) -> MLObject:
     rootLogger = logging.getLogger()
-    rootLogger.setLevel(logging.CRITICAL)
+    rootLogger.setLevel(logging.DEBUG)
     (workflow_object, errors) = metastore_connection.get_workflow_object(
         workflow_node_id
     )
-    rootLogger.setLevel(logging.DEBUG)
 
     if workflow_object is None:
         raise KnownException(
