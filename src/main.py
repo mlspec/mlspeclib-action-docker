@@ -14,8 +14,7 @@ from marshmallow.class_registry import RegistryError
 import base64
 import git
 from git import GitCommandError
-from tempfile import TemporaryFile
-
+from tempfile
 from mlspeclib import MLObject, MLSchema
 from mlspeclib.experimental.metastore import Metastore
 
