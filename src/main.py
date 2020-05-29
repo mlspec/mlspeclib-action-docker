@@ -14,6 +14,7 @@ from marshmallow.class_registry import RegistryError
 import base64
 import git
 from git import GitCommandError
+from tempfile import TemporaryFile
 
 from mlspeclib import MLObject, MLSchema
 from mlspeclib.experimental.metastore import Metastore
@@ -228,6 +229,8 @@ def sub_main():
 
     if is_docker():
         Path('/output_message.txt').write_text(output_message)
+    else:
+        TempFile.write_text(output_message)
 
 def is_docker():
     path = '/proc/self/cgroup'
