@@ -8,7 +8,7 @@ git add .
 git commit -a -m 'updating requirements'
 git push
 
-python3 -m unittest tests/tests_*
+python3 -m unittest tests/test_*
 RUN_TYPE=0
 python3 tests/run_main.py
 
