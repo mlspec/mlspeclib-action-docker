@@ -239,7 +239,8 @@ def sub_main():
     if is_docker():
         Path("/output_message.txt").write_text(output_message)
     else:
-        TemporaryFile().write_text(output_message)
+        fp = tempfile.TemporaryFile()
+        fp.write(output_message.encode('utf-8'))
 
 
 def is_docker():

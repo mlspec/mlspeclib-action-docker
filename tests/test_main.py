@@ -32,10 +32,10 @@ from main import (  # noqa E402
     load_workflow_object,
     load_contract_object,
     execute_step,
-    load_parameters
+    load_parameters,
 )
 
-from utils import setupLogger, KnownException # noqa E402
+from utils import setupLogger, KnownException  # noqa E402
 
 from step_execution import StepExecution  # noqa E402
 
@@ -138,7 +138,7 @@ class test_main(unittest.TestCase):
 
             self.assertTrue(load_metastore_connection(self.encode_dict(cred_dict)))
 
-#    @unittest.skip("Binary Search")
+    #    @unittest.skip("Binary Search")
     def test_load_workflow_object(self):
         with patch.object(
             mlspeclib.experimental.metastore, "Metastore"
@@ -320,7 +320,9 @@ class test_main(unittest.TestCase):
             with self.assertRaises(SystemExit):
                 main()
 
-            self.assertTrue("Could not find the base schema" in str(mock_stdout.getvalue()))
+            self.assertTrue(
+                "Could not find the base schema" in str(mock_stdout.getvalue())
+            )
 
 
 if __name__ == "__main__":
