@@ -66,7 +66,7 @@ class setupLogger():
 
             set_output_handler = logging.StreamHandler(sys.stdout)
             set_output_handler.setLevel(logging.NOTSET)
-            set_output_handler.setFormatter('%(message)s')
+            set_output_handler.setFormatter(logging.Formatter('%(message)s'))
             set_output_handler.addFilter(self.filter_for_outputs)
             set_output_handler.set_name('setoutput.logger')
             self._rootLogger.addHandler(set_output_handler)
