@@ -24,7 +24,7 @@ from utils import setupLogger
 RUN_TYPES = ["main", "entrypoint.sh", "container interactive", "container pure"]
 RUN_TYPE = RUN_TYPES[os.environ.get("RUN_TYPE", 0)]
 
-(rootLogger, buffer) = setupLogger()
+(rootLogger, buffer) = setupLogger().get_loggers()
 
 
 for i in os.environ:

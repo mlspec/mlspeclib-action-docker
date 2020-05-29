@@ -39,12 +39,10 @@ REQUIRED = [
     "GITHUB_WORKSPACE",
 ]
 
-CONTRACT_TYPES = ["input", "execution", "output", "log"]
-rootLogger = None
-logBuffer = None
+CONTRACT_TYPES = ["input", "execution", "output", "log"] 
 
 def main():
-    (rootLogger, _) = setupLogger()
+    rootLogger = setupLogger().get_root_logger()
 
     try:
         sub_main()
@@ -69,7 +67,7 @@ def main():
         exit(1)
 
 def sub_main():
-    (rootLogger, logBuffer) = setupLogger()
+    rootLogger = setupLogger().get_root_logger()
 
     # Loading input values
     rootLogger.debug("::debug::Loading input values")
@@ -194,7 +192,7 @@ def sub_main():
     final_encode_to_utf8 = str(base64_encode, "utf-8")
 
     # Recording raw log info
-    logBuffer.flush()
+    # logBuffer.flush()
     # log_contents = logBuffer.getvalue()
 
     log_object = MLObject()
@@ -217,11 +215,12 @@ def sub_main():
     rootLogger.critical(
         f"::set-output name=output_raw::{results_ml_object.dict_without_internal_variables()}"
     )
-    rootLogger.critical(f"::set-output name=output_base64_encoded::{final_encode_to_utf8}")
-    rootLogger.critical(f"::set-output name=input_node_id::{input_node_id}")
-    rootLogger.critical(f"::set-output name=execution_node_id::{execution_node_id}")
-    rootLogger.critical(f"::set-output name=output_node_id::{output_node_id}")
-    rootLogger.critical(f"::set-output name=log_node_id::{log_node_id}")
+
+    setupLogger.print_and_log(f"::set-output name=output_base64_encoded::{final_encode_to_utf8}")
+    setupLogger.print_and_log(f"::set-output name=input_node_id::{input_node_id}")
+    setupLogger.print_and_log(f"::set-output name=execution_node_id::{execution_node_id}")
+    setupLogger.print_and_log(f"::set-output name=output_node_id::{output_node_id}")
+    setupLogger.print_and_log(f"::set-output name=log_node_id::{log_node_id}")
 
 
 def repr_uuid(dumper, uuid_obj):
@@ -264,7 +263,7 @@ def load_metastore_connection(credentials_packed: str):
 def load_workflow_object(
     workflow_node_id: str, metastore_connection: Metastore
 ) -> MLObject:
-    (rootLogger, _) = setupLogger()
+    rootLogger = setupLogger().get_root_logger()
     (workflow_object, errors) = metastore_connection.get_workflow_object(
         workflow_node_id
     )
@@ -332,7 +331,7 @@ def load_contract_object(
     Will fail if the .validate() fails on the object or the schema mismatches what is seen in the
     workflow.
     """
-    (rootLogger, _) = setupLogger()
+    rootLogger = setupLogger().get_root_logger()
 
     if contract_type not in CONTRACT_TYPES:
         raise KnownException(

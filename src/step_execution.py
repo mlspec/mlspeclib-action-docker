@@ -32,7 +32,7 @@ class StepExecution:
     def __init__(self, input_params, execution_params):
         self.input_params = input_params
         self.execution_params = execution_params
-        (self.logger, _) = setupLogger()
+        self.logger = setupLogger().get_root_logger()
 
         # Execute all work in here.
 

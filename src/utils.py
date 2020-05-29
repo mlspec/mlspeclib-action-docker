@@ -1,5 +1,6 @@
 import mlspeclib
 import logging
+import logging.config
 from io import StringIO
 import sys
 from pathlib import Path
@@ -13,7 +14,7 @@ class KnownException(Exception):
     pass
 
 def report_found_params(expected_params: list, offered_params: dict) -> None:
-    (rootLogger, _) = setupLogger()
+    rootLogger = setupLogger().get_root_logger()
     for param in expected_params:
         if param not in offered_params or offered_params[param] is None:
             raise KnownException(f"No parameter set for {param}.")
@@ -33,30 +34,59 @@ def raise_schema_mismatch(
     Actual Version: {actual_version}")"""
     )
 
+# TODO: Think about moving logger to a library of some kind so that it can be reused with this signature across derivaed containers
+class setupLogger():
+    _rootLogger = None
+    _buffer = None
 
-def setupLogger():
-    rootLogger = logging.getLogger()
-    rootLogger.setLevel(logging.DEBUG)
-    formatter = logging.Formatter(
-        "::%(levelname)s - %(message)s"
-    )
+    def __init__(self):
+        # logging.config.fileConfig('logging.conf')
 
-    if 'buffer.logger' not in rootLogger.handlers:
-        buffer = StringIO()
-        bufferHandler = logging.StreamHandler(buffer)
-        bufferHandler.setLevel(logging.DEBUG)
-        bufferHandler.setFormatter(formatter)
-        bufferHandler.set_name('buffer.logger')
-        rootLogger.addHandler(bufferHandler)
+        # return (logger, None)
+        self._rootLogger = logging.getLogger()
+        self._rootLogger.setLevel(logging.DEBUG)
+        formatter = logging.Formatter(
+            "::%(levelname)s - %(message)s"
+        )
 
-    if 'stdout.logger' not in rootLogger.handlers:
-        stdout_handler = logging.StreamHandler(sys.stdout)
-        stdout_handler.setLevel(logging.DEBUG)
-        stdout_handler.setFormatter(formatter)
-        bufferHandler.set_name('stdout.logger')
-        rootLogger.addHandler(stdout_handler)
+        if not self._rootLogger.hasHandlers() :
+            self._buffer = StringIO()
+            bufferHandler = logging.StreamHandler(self._buffer)
+            bufferHandler.setLevel(logging.DEBUG)
+            bufferHandler.setFormatter(formatter)
+            bufferHandler.set_name('buffer.logger')
+            self._rootLogger.addHandler(bufferHandler)
 
-    return (rootLogger, buffer)
+            stdout_handler = logging.StreamHandler(sys.stdout)
+            stdout_handler.setLevel(logging.DEBUG)
+            stdout_handler.setFormatter(formatter)
+            stdout_handler.set_name('stdout.logger')
+            self._rootLogger.addHandler(stdout_handler)
+        else:
+            for i, handler in enumerate(self._rootLogger.handlers):
+                if handler.name == 'buffer.logger':
+                    self._buffer = self._rootLogger.handlers[i].stream
+                    break
+            
+            if self._buffer is None:
+                raise SystemError(f"Somehow, we've lost the 'buffer' logger, meaning nothing will be printed. Exiting now.")
+
+    def get_loggers(self):
+        return (self._rootLogger, self._buffer)
+
+    def get_root_logger(self):
+        return self._rootLogger
+    
+    def get_buffer(self):
+        return self._buffer
+
+    @staticmethod
+    def print_and_log(msg):
+        logger = setupLogger()
+        rootLogger = logger.get_root_logger()
+        print(msg)
+        rootLogger.debug(msg)
+
 
 
 # def get_best_run(experiment, run, pipeline_child_run_name=None):

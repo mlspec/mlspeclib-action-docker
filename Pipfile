@@ -15,9 +15,9 @@ pyyaml = "*"
 msgpack = "*"
 gremlinpython = "*"
 python-box = "*"
-mlspeclib = "*"
 toml = "*"
 gitpython = "*"
+mlspeclib = "*"
 
 [requires]
 python_version = "3.6"
