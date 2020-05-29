@@ -216,11 +216,11 @@ def sub_main():
         f"::set-output name=output_raw::{results_ml_object.dict_without_internal_variables()}"
     )
 
-    setupLogger.print_and_log(f"::set-output name=output_base64_encoded::{final_encode_to_utf8}")
-    setupLogger.print_and_log(f"::set-output name=input_node_id::{input_node_id}")
-    setupLogger.print_and_log(f"::set-output name=execution_node_id::{execution_node_id}")
-    setupLogger.print_and_log(f"::set-output name=output_node_id::{output_node_id}")
-    setupLogger.print_and_log(f"::set-output name=log_node_id::{log_node_id}")
+    setupLogger.print_and_log("output_base64_encoded", final_encode_to_utf8)
+    setupLogger.print_and_log("input_node_id", input_node_id)
+    setupLogger.print_and_log("execution_node_id", execution_node_id)
+    setupLogger.print_and_log("output_node_id", output_node_id)
+    setupLogger.print_and_log("log_node_id", log_node_id)
 
 
 def repr_uuid(dumper, uuid_obj):
