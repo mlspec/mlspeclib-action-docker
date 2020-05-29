@@ -225,8 +225,16 @@ def sub_main():
     output_message += f"{logger.print_and_log('output_node_id', output_node_id)}\n"
     
     print(output_message)
-    Path('/output_message.txt').write_text(output_message)
 
+    if is_docker():
+        Path('/output_message.txt').write_text(output_message)
+
+def is_docker():
+    path = '/proc/self/cgroup'
+    return (
+        os.path.exists('/.dockerenv') or
+        os.path.isfile(path) and any('docker' in line for line in open(path))
+    )
 
 def repr_uuid(dumper, uuid_obj):
     return YAML.ScalarNode("tag:yaml.org,2002:str", str(uuid_obj))
