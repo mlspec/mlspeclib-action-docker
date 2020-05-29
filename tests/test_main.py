@@ -265,6 +265,7 @@ class test_main(unittest.TestCase):
                 )
 
             self.assertTrue("schema and version" in str(context.exception))
+
     @patch.object(StepExecution, "__init__", return_value=None)
     @patch.object(StepExecution, "execute", return_value=None)
     def test_return_no_result_object(self, *mock_step_execution):

@@ -28,7 +28,7 @@ from utils import (  # noqa
     report_found_params,
     raise_schema_mismatch,
     setupLogger,
-    KnownException
+    KnownException,
 )  # noqa
 from step_execution import StepExecution  # noqa
 
@@ -40,7 +40,8 @@ REQUIRED = [
     "GITHUB_WORKSPACE",
 ]
 
-CONTRACT_TYPES = ["input", "execution", "output", "log"] 
+CONTRACT_TYPES = ["input", "execution", "output", "log"]
+
 
 def main():
     rootLogger = setupLogger().get_root_logger()
@@ -58,7 +59,7 @@ def main():
         else:
             raise ke
     except FileNotFoundError as fnfe:
-        if 'No files ending in' in str(fnfe):
+        if "No files ending in" in str(fnfe):
             rootLogger.critical(str(fnfe))
             exit(1)
         else:
@@ -66,6 +67,7 @@ def main():
     except RegistryError as re:
         rootLogger.critical(str(re))
         exit(1)
+
 
 def sub_main():
     rootLogger = setupLogger().get_root_logger()
@@ -115,7 +117,9 @@ def sub_main():
     ms = load_metastore_connection(metastore_credentials_packed)
     workflow_node_id = os.environ.get("INPUT_WORKFLOW_NODE_ID")
     if workflow_node_id == "":
-        raise KnownException("INPUT_WORKFLOW_NODE_ID - No workflow node id was provided.")
+        raise KnownException(
+            "INPUT_WORKFLOW_NODE_ID - No workflow node id was provided."
+        )
     workflow_object = load_workflow_object(workflow_node_id, ms)
 
     rootLogger.debug("::debug::Loading input parameters")
@@ -218,26 +222,34 @@ def sub_main():
     )
 
     logger = setupLogger()
-    output_message = "" 
+    output_message = ""
     output_message += f"{logger.print_and_log('output_raw', results_ml_object.dict_without_internal_variables())}\n"
-    output_message += f"{logger.print_and_log('output_base64_encoded', final_encode_to_utf8)}\n"
+    output_message += (
+        f"{logger.print_and_log('output_base64_encoded', final_encode_to_utf8)}\n"
+    )
     output_message += f"{logger.print_and_log('input_node_id', input_node_id)}\n"
-    output_message += f"{logger.print_and_log('execution_node_id', execution_node_id)}\n"
+    output_message += (
+        f"{logger.print_and_log('execution_node_id', execution_node_id)}\n"
+    )
     output_message += f"{logger.print_and_log('output_node_id', output_node_id)}\n"
-    
+    output_message += f"{logger.print_and_log('log_node_id', log_node_id)}\n"
+
     print(output_message)
 
     if is_docker():
-        Path('/output_message.txt').write_text(output_message)
+        Path("/output_message.txt").write_text(output_message)
     else:
-        TempFile.write_text(output_message)
+        TemporaryFile().write_text(output_message)
+
 
 def is_docker():
-    path = '/proc/self/cgroup'
+    cgroup_path = "/proc/self/cgroup"
     return (
-        os.path.exists('/.dockerenv') or
-        os.path.isfile(path) and any('docker' in line for line in open(path))
+        os.path.exists("/.dockerenv")
+        or os.path.isfile(cgroup_path)
+        and any("docker" in line for line in open(cgroup_path))
     )
+
 
 def repr_uuid(dumper, uuid_obj):
     return YAML.ScalarNode("tag:yaml.org,2002:str", str(uuid_obj))
@@ -307,9 +319,7 @@ def load_parameters(contract_type: str, metastore_connection: Metastore):
 
     parameters_raw = os.environ.get(f"INPUT_{contract_type}_PARAMETERS_RAW", "")
     parameters_base64 = os.environ.get(f"INPUT_{contract_type}_PARAMETERS_BASE64", "")
-    parameters_node_id = os.environ.get(
-        f"INPUT_{contract_type}_PARAMETERS_NODE_ID", ""
-    )
+    parameters_node_id = os.environ.get(f"INPUT_{contract_type}_PARAMETERS_NODE_ID", "")
     parameters_file_path = os.environ.get(
         f"INPUT_{contract_type}_PARAMETERS_FILE_PATH", ""
     )
@@ -372,7 +382,9 @@ def load_contract_object(
         )
 
     if step_name not in workflow_object["steps"]:
-        raise KnownException(f"Workflow object does not contain the step '{step_name}'.")
+        raise KnownException(
+            f"Workflow object does not contain the step '{step_name}'."
+        )
 
     if contract_type not in workflow_object["steps"][step_name]:
         raise KnownException(
@@ -418,7 +430,9 @@ def execute_step(
     )
 
     if results_ml_object is None or not isinstance(results_ml_object, MLObject):
-        raise KnownException("Execution failed to return an MLObject. Cannot save output.")
+        raise KnownException(
+            "Execution failed to return an MLObject. Cannot save output."
+        )
 
     results_ml_object.run_id = run_id
     results_ml_object.step_id = str(uuid.uuid4())
