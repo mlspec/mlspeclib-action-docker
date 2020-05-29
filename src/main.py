@@ -212,15 +212,17 @@ def sub_main():
         log_object, workflow_object.schema_version, workflow_node_id, step_name, "log"
     )
 
-    rootLogger.critical(
+    rootLogger.debug(
         f"::set-output name=output_raw::{results_ml_object.dict_without_internal_variables()}"
     )
 
-    setupLogger.print_and_log("output_base64_encoded", final_encode_to_utf8)
-    setupLogger.print_and_log("input_node_id", input_node_id)
-    setupLogger.print_and_log("execution_node_id", execution_node_id)
-    setupLogger.print_and_log("output_node_id", output_node_id)
-    setupLogger.print_and_log("log_node_id", log_node_id)
+    output_message = "" 
+    output_message += f"{setupLogger.print_and_log('output_base64_encoded', final_encode_to_utf8)}\n"
+    output_message += f"{setupLogger.print_and_log('input_node_id', input_node_id)}\n"
+    output_message += f"{setupLogger.print_and_log('execution_node_id', execution_node_id)}\n"
+    output_message += f"{setupLogger.print_and_log('output_node_id', output_node_id)}\n"
+    
+    print(output_message)
 
 
 def repr_uuid(dumper, uuid_obj):
