@@ -14,7 +14,7 @@ from marshmallow.class_registry import RegistryError
 import base64
 import git
 from git import GitCommandError
-from tempfile
+import tempfile
 from mlspeclib import MLObject, MLSchema
 from mlspeclib.experimental.metastore import Metastore
 
@@ -239,7 +239,7 @@ def sub_main():
         Path("/output_message.txt").write_text(output_message)
     else:
         fp = tempfile.TemporaryFile()
-        fp.write(output_message.encode('utf-8'))
+        fp.write(output_message.encode("utf-8"))
 
 
 def is_docker():
