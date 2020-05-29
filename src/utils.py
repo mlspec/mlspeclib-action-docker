@@ -1,6 +1,6 @@
 import mlspeclib
 import logging
-import logging.config
+from logging import LogRecord
 from io import StringIO
 import sys
 import os
@@ -65,11 +65,11 @@ class setupLogger():
             self._rootLogger.addHandler(stdout_handler)
 
             set_output_handler = logging.StreamHandler(sys.stdout)
-            set_output_handler.setLevel(logging.info)
+            set_output_handler.setLevel(logging.NOTSET)
             set_output_handler.setFormatter('%(message)s')
             set_output_handler.addFilter(self.filter_for_outputs)
             set_output_handler.set_name('setoutput.logger')
-            self._rootLogger.addFilter(set_output_handler)
+            self._rootLogger.addHandler(set_output_handler)
         else:
             for i, handler in enumerate(self._rootLogger.handlers):
                 if handler.name == 'buffer.logger':
@@ -97,7 +97,7 @@ class setupLogger():
         return output_message
 
     @staticmethod
-    def filter_for_outputs(record):
-        if record.message.startswith == '::set-output':
+    def filter_for_outputs(record: LogRecord):
+        if str(record.msg).startswith('::set-output'):
             return True
         return False
