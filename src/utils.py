@@ -38,19 +38,23 @@ def setupLogger():
     rootLogger = logging.getLogger()
     rootLogger.setLevel(logging.DEBUG)
     formatter = logging.Formatter(
-        "::%(levelname)s - %(message)s\n"
+        "::%(levelname)s - %(message)s"
     )
 
-    buffer = StringIO()
-    bufferHandler = logging.StreamHandler(buffer)
-    bufferHandler.setLevel(logging.DEBUG)
-    bufferHandler.setFormatter(formatter)
-    rootLogger.addHandler(bufferHandler)
+    if 'buffer.logger' not in rootLogger.handlers:
+        buffer = StringIO()
+        bufferHandler = logging.StreamHandler(buffer)
+        bufferHandler.setLevel(logging.DEBUG)
+        bufferHandler.setFormatter(formatter)
+        bufferHandler.set_name('buffer.logger')
+        rootLogger.addHandler(bufferHandler)
 
-    stdout_handler = logging.StreamHandler(sys.stdout)
-    stdout_handler.setLevel(logging.DEBUG)
-    stdout_handler.setFormatter(formatter)
-    rootLogger.addHandler(stdout_handler)
+    if 'stdout.logger' not in rootLogger.handlers:
+        stdout_handler = logging.StreamHandler(sys.stdout)
+        stdout_handler.setLevel(logging.DEBUG)
+        stdout_handler.setFormatter(formatter)
+        bufferHandler.set_name('stdout.logger')
+        rootLogger.addHandler(stdout_handler)
 
     return (rootLogger, buffer)
 
