@@ -3,6 +3,7 @@ import logging
 import logging.config
 from io import StringIO
 import sys
+import os
 from pathlib import Path
 
 if Path("src").exists():
@@ -81,12 +82,15 @@ class setupLogger():
         return self._buffer
 
     @staticmethod
-    def print_and_log(msg):
+    def print_and_log(variable_name, variable_value):
         logger = setupLogger()
         rootLogger = logger.get_root_logger()
-        print(msg)
-        rootLogger.debug(msg)
+        # echo "::set-output name=time::$time"
+        output_message = f"::set-output name={variable_name}::{variable_value}" 
+        print(output_message)
+        rootLogger.debug(output_message)
 
+        os.environ[variable_name] = variable_value
 
 
 # def get_best_run(experiment, run, pipeline_child_run_name=None):
