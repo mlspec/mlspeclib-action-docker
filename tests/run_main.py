@@ -19,7 +19,7 @@ if Path("src").exists():
 sys.path.append(str(Path.cwd().resolve()))
 from main import main  # noqa
 
-from utils import setupLogger  # noqa
+from utils.utils import setupLogger  # noqa
 
 RUN_TYPES = ["main", "entrypoint.sh", "container interactive", "container pure"]
 RUN_TYPE = RUN_TYPES[os.environ.get("RUN_TYPE", 0)]

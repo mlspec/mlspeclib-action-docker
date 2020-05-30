@@ -74,25 +74,33 @@ def sub_main():
     rootLogger = setupLogger().get_root_logger()
 
     # Loading input values
-    rootLogger.debug("::debug::Loading input values")
+    msg = "::debug::Loading input values"
+    print("Loading variables from environment...", end = '')
+    rootLogger.debug(msg)
 
     parameters = convert_environment_variables_to_dict()
+
+    print("{:>15}".format("ok")) # Finished loading from environment
 
     parameters.INPUT_SCHEMAS_DIRECTORY = os.environ.get("INPUT_SCHEMAS_DIRECTORY")
 
     if "INPUT_SCHEMAS_GIT_URL" in os.environ and os.environ.get != "":
         parameters.INPUT_SCHEMAS_GIT_URL = os.environ.get("INPUT_SCHEMAS_GIT_URL")
+        print(f"Downloading schemas from {parameters.INPUT_SCHEMAS_GIT_URL}...", end = '')
         try:
             git.Git(parameters.INPUT_SCHEMAS_DIRECTORY).clone(
                 parameters.INPUT_SCHEMAS_GIT_URL, str(uuid.uuid4()), depth=1
             )
             # TODO: Authenticate with GH Token?
+            print("{:>15}".format("ok")) # Finished loading from GIT URL
         except GitCommandError as gce:
             raise KnownException(
                 f"Trying to read from the git repo ({parameters.INPUT_SCHEMAS_GIT_URL}) and write to the directory ({parameters.INPUT_SCHEMAS_DIRECTORY}). Full error follows: {str(gce)}"
             )
-
+            
+    print("Appending schemas to registry...", end = '')
     MLSchema.append_schema_to_registry(Path(parameters.INPUT_SCHEMAS_DIRECTORY))
+    print("{:>15}".format("ok")) # Finished loading registry
 
     parameters.previous_step_name = os.environ.get("INPUT_PREVIOUS_STEP_NAME", "")
     parameters.next_step_name = os.environ.get("INPUT_NEXT_STEP_NAME", "")
@@ -101,6 +109,7 @@ def sub_main():
     # Load metastore credentials
 
     rootLogger.debug("::debug:: Loading credentials")
+    print("Loading and validating metastore credentials...", end = '')
     metastore_cred_string_blob = os.environ.get("INPUT_METASTORE_CREDENTIALS")
 
     metastore_credentials_packed = YAML.safe_load(metastore_cred_string_blob)
@@ -112,31 +121,44 @@ def sub_main():
     report_found_params(
         ["url", "key", "database_name", "container_name"], metastore_credentials
     )
-
+    print("{:>15}".format("ok")) # Finished loading and validating metastore
     rootLogger.debug("::debug::Starting metastore connection")
 
+    print("Starting connection to metastore...", end = '')
     ms = load_metastore_connection(metastore_credentials_packed)
+    print("{:>15}".format("ok")) # Finished connecting to metastore
+
     workflow_node_id = os.environ.get("INPUT_WORKFLOW_NODE_ID")
     if workflow_node_id == "":
         raise KnownException(
             "INPUT_WORKFLOW_NODE_ID - No workflow node id was provided."
         )
+
+    print(f"Loading workflow object ID: '{workflow_node_id}' ...", end = '')
     workflow_object = load_workflow_object(workflow_node_id, ms)
+    print("{:>15}".format("ok")) # Finished loading workload abject
 
     rootLogger.debug("::debug::Loading input parameters")
+    print("Loading input parameters ...", end = '')
     input_parameters = load_parameters("INPUT", ms)
+    print("{:>15}".format("ok")) # Finished loading input parameters from metastore
 
     rootLogger.debug("::debug::Loading execution parameters file")
+    print("Loading execution parameters ...", end = '')
     execution_parameters = load_parameters("EXECUTION", ms)
+    print("{:>15}".format("ok")) # Finished loading execution  parameters from metastore
 
     step_name = parameters.INPUT_STEP_NAME
+    print(f"Loading contract for '{step_name}.input' ...", end = '')
     input_object = load_contract_object(
         parameters=input_parameters,
         workflow_object=workflow_object,
         step_name=step_name,
         contract_type="input",
     )
+    print("{:>15}".format("ok")) # Finished loading execution  parameters from metastore
 
+    print(f"Attaching step info to input for '{step_name}.input' ...")
     input_node_id = ms.attach_step_info(
         input_object,
         workflow_object.schema_version,
@@ -144,6 +166,8 @@ def sub_main():
         step_name,
         "input",
     )
+    print(f"\tInput Node ID: {input_node_id}") # Finished attaching step ID to input
+
     rootLogger.debug(f"Successfully saved: {input_object}")
 
     # TODO don't hard code any of these
@@ -152,15 +176,18 @@ def sub_main():
     exec_dict["run_date"] = datetime.datetime.now()
     exec_dict["step_id"] = str(uuid.uuid4())
 
+    print(f"Loading contract for '{step_name}.execution' ...", end = '')
     execution_object = load_contract_object(
         parameters=exec_dict,
         workflow_object=workflow_object,
         step_name=step_name,
         contract_type="execution",
     )
+    print("{:>15}".format("ok")) # Finished loading execution  parameters from metastore
 
     rootLogger.debug(f"Successfully loaded and validated execution: {execution_object}")
 
+    print(f"Attaching step info to input for '{step_name}.execution' ...")
     execution_node_id = ms.attach_step_info(
         execution_object,
         workflow_object.schema_version,
@@ -169,7 +196,9 @@ def sub_main():
         "execution",
     )
     rootLogger.debug(f"Successfully saved: {execution_object}")
+    print(f"\tExecution Node ID: {execution_node_id}") # Finished attaching step ID to input
 
+    print(f"Executing step ... ", end='') 
     results_ml_object = execute_step(
         workflow_object,
         input_object,
@@ -177,7 +206,9 @@ def sub_main():
         step_name,
         parameters.GITHUB_RUN_ID,
     )
+    print("{:>15}".format("ok")) # Finished executing step
 
+    print(f"Attaching step info to output for '{step_name}.output' ...")
     output_node_id = ms.attach_step_info(
         results_ml_object,
         workflow_object.schema_version,
@@ -185,6 +216,7 @@ def sub_main():
         step_name,
         "output",
     )
+    print(f"\tOutput Node ID: {output_node_id}") # Finished attaching step ID to output
 
     dict_conversion = results_ml_object.dict_without_internal_variables()
 
@@ -222,6 +254,7 @@ def sub_main():
         f"::set-output name=output_raw::{results_ml_object.dict_without_internal_variables()}"
     )
 
+    print(f"Printing output ... \n \n")
     logger = setupLogger()
     output_message = ""
     output_message += f"{logger.print_and_log('output_raw', results_ml_object.dict_without_internal_variables())}\n"
@@ -235,13 +268,16 @@ def sub_main():
     output_message += f"{logger.print_and_log('output_node_id', output_node_id)}\n"
     output_message += f"{logger.print_and_log('log_node_id', log_node_id)}\n"
 
-    print(output_message)
+    rootLogger.debug(f"Complete output: \n {output_message}")
+    print("\n\n... finished printing output") # Finished printing output
 
+    print(f"Generating /output_message.txt ...", end = '')
     if is_docker():
         Path("/output_message.txt").write_text(output_message)
     else:
         fp = tempfile.TemporaryFile()
         fp.write(output_message.encode("utf-8"))
+    print("{:>15}".format("ok")) # Finished printing output
 
 
 def is_docker():
