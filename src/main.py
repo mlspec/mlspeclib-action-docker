@@ -23,7 +23,7 @@ if Path("src").exists():
 sys.path.append(str(Path.cwd()))
 sys.path.append(str(Path.cwd().parent))
 
-from utils import (  # noqa
+from utils.utils import (  # noqa
     report_found_params,
     raise_schema_mismatch,
     setupLogger,
@@ -43,7 +43,9 @@ CONTRACT_TYPES = ["input", "execution", "output", "log"]
 
 
 def main():
-    rootLogger = setupLogger().get_root_logger()
+    turn_debug_on = os.environ.get('INPUT_ACTIONS_STEP_DEBUG', False)
+
+    rootLogger = setupLogger(turn_debug_on).get_root_logger()
 
     try:
         sub_main()

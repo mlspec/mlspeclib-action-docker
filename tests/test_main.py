@@ -23,10 +23,9 @@ if Path("src").exists():
 sys.path.append(str(Path.cwd()))
 sys.path.append(str(Path.cwd().parent))
 
-from main import (  # noqa E402
+from main import (
     main,
     convert_environment_variables_to_dict,
-    report_found_params,
     verify_parameters_folder_and_file_exist,
     load_metastore_connection,
     load_workflow_object,
@@ -35,7 +34,11 @@ from main import (  # noqa E402
     load_parameters,
 )
 
-from utils import setupLogger, KnownException  # noqa E402
+from utils.utils import (  # noqa E402
+    report_found_params,
+    setupLogger,
+    KnownException
+)
 
 from step_execution import StepExecution  # noqa E402
 
