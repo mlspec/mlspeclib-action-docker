@@ -11,7 +11,7 @@ on:
       - v*
 
 env:
-  IMAGE_NAME: mlspeclib-action-docker
+  IMAGE_NAME: mlspec/mlspeclib-action-docker
 
 jobs:
   # Run tests.
@@ -22,14 +22,15 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-      - name: Run tests
-        run: |
-          if [ -f docker-compose.test.yml ]; then
-            docker-compose --file docker-compose.test.yml build
-            docker-compose --file docker-compose.test.yml run sut
-          else
-            docker build . --file Dockerfile
-          fi
+      - name: Build container
+        uses: docker/build-push-action@v1
+        with:
+          username: ${{ secrets.DOCKERUSERNAME }}
+          password: ${{ secrets.DOCKERPASSWORD }}
+          repository: ${{ env.IMAGE_NAME }}
+          tag_with_sha: true
+          tag_with_ref: true
+          push: false
 
   push:
     # Ensure test job passes before pushing image.
@@ -41,12 +42,12 @@ jobs:
     steps:
       - uses: actions/checkout@v2
 
-
-      - uses: docker/build-push-action@v1
+      - name: Confirm build
+        uses: docker/build-push-action@v1
         with:
           username: ${{ secrets.DOCKERUSERNAME }}
           password: ${{ secrets.DOCKERPASSWORD }}
-          repository: mlspec/mlspeclib-action-docker
+          repository: ${{ env.IMAGE_NAME }}
           tag_with_sha: true
           tag_with_ref: true
           push: false
@@ -54,19 +55,12 @@ jobs:
       - name: Log into registry
         run: echo "${{ secrets.GITHUBTOKEN }}" | docker login docker.pkg.github.com -u ${{ github.actor }} --password-stdin
 
-      - name: Build and publish Docker Image to GitHub Packages Registry
-        uses: VaultVulp/gp-docker-action@1.1.2
-        with:
-          # GitHub token to push Docker image to GitHub Packages
-          github-token: ${{ secrets.GITHUBTOKEN }}
-          # Docker Image name
-          image-name: mlspeclib-action-docker 
-
-      - uses: docker/build-push-action@v1
+      - name: Push to registry
+        uses: docker/build-push-action@v1
         with:
           username: ${{ secrets.DOCKERUSERNAME }}
           password: ${{ secrets.DOCKERPASSWORD }}
-          repository: mlspec/mlspeclib-action-docker
+          repository: ${{ env.IMAGE_NAME }}
           tag_with_sha: true
           tag_with_ref: true
           push: true          
