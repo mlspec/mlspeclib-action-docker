@@ -43,7 +43,7 @@ CONTRACT_TYPES = ["input", "execution", "output", "log"]
 
 
 def main():
-    turn_debug_on = os.environ.get('INPUT_ACTIONS_STEP_DEBUG', False)
+    turn_debug_on = os.environ.get("INPUT_ACTIONS_STEP_DEBUG", False)
 
     rootLogger = setupLogger(turn_debug_on).get_root_logger()
 
@@ -80,27 +80,29 @@ def sub_main():
 
     parameters = convert_environment_variables_to_dict()
 
-    print("{:>15}".format("ok")) # Finished loading from environment
+    print("{:>15}".format("ok"))  # Finished loading from environment
 
     parameters.INPUT_SCHEMAS_DIRECTORY = os.environ.get("INPUT_SCHEMAS_DIRECTORY")
 
     if "INPUT_SCHEMAS_GIT_URL" in os.environ and os.environ.get != "":
         parameters.INPUT_SCHEMAS_GIT_URL = os.environ.get("INPUT_SCHEMAS_GIT_URL")
-        print_left_message(f"Downloading schemas from {parameters.INPUT_SCHEMAS_GIT_URL}...")
+        print_left_message(
+            f"Downloading schemas from {parameters.INPUT_SCHEMAS_GIT_URL}..."
+        )
         try:
             git.Git(parameters.INPUT_SCHEMAS_DIRECTORY).clone(
                 parameters.INPUT_SCHEMAS_GIT_URL, str(uuid.uuid4()), depth=1
             )
             # TODO: Authenticate with GH Token?
-            print("{:>15}".format("ok")) # Finished loading from GIT URL
+            print("{:>15}".format("ok"))  # Finished loading from GIT URL
         except GitCommandError as gce:
             raise KnownException(
                 f"Trying to read from the git repo ({parameters.INPUT_SCHEMAS_GIT_URL}) and write to the directory ({parameters.INPUT_SCHEMAS_DIRECTORY}). Full error follows: {str(gce)}"
             )
-            
+
     print_left_message("Appending schemas to registry...")
     MLSchema.append_schema_to_registry(Path(parameters.INPUT_SCHEMAS_DIRECTORY))
-    print("{:>15}".format("ok")) # Finished loading registry
+    print("{:>15}".format("ok"))  # Finished loading registry
 
     parameters.previous_step_name = os.environ.get("INPUT_PREVIOUS_STEP_NAME", "")
     parameters.next_step_name = os.environ.get("INPUT_NEXT_STEP_NAME", "")
@@ -121,12 +123,12 @@ def sub_main():
     report_found_params(
         ["url", "key", "database_name", "container_name"], metastore_credentials
     )
-    print("{:>15}".format("ok")) # Finished loading and validating metastore
+    print("{:>15}".format("ok"))  # Finished loading and validating metastore
     rootLogger.debug("::debug::Starting metastore connection")
 
     print_left_message("Starting connection to metastore...")
     ms = load_metastore_connection(metastore_credentials_packed)
-    print("{:>15}".format("ok")) # Finished connecting to metastore
+    print("{:>15}".format("ok"))  # Finished connecting to metastore
 
     workflow_node_id = os.environ.get("INPUT_WORKFLOW_NODE_ID")
     if workflow_node_id == "":
@@ -136,17 +138,19 @@ def sub_main():
 
     print_left_message(f"Loading workflow object ID: '{workflow_node_id}' ...")
     workflow_object = load_workflow_object(workflow_node_id, ms)
-    print("{:>15}".format("ok")) # Finished loading workload abject
+    print("{:>15}".format("ok"))  # Finished loading workload abject
 
     rootLogger.debug("::debug::Loading input parameters")
     print_left_message("Loading input parameters ...")
     input_parameters = load_parameters("INPUT", ms)
-    print("{:>15}".format("ok")) # Finished loading input parameters from metastore
+    print("{:>15}".format("ok"))  # Finished loading input parameters from metastore
 
     rootLogger.debug("::debug::Loading execution parameters file")
     print_left_message("Loading execution parameters ...")
     execution_parameters = load_parameters("EXECUTION", ms)
-    print("{:>15}".format("ok")) # Finished loading execution  parameters from metastore
+    print(
+        "{:>15}".format("ok")
+    )  # Finished loading execution  parameters from metastore
 
     step_name = parameters.INPUT_STEP_NAME
     print_left_message(f"Loading contract for '{step_name}.input' ...")
@@ -156,7 +160,9 @@ def sub_main():
         step_name=step_name,
         contract_type="input",
     )
-    print("{:>15}".format("ok")) # Finished loading execution  parameters from metastore
+    print(
+        "{:>15}".format("ok")
+    )  # Finished loading execution  parameters from metastore
 
     print(f"Attaching step info to input for '{step_name}.input' ... ")
     input_node_id = ms.attach_step_info(
@@ -166,7 +172,7 @@ def sub_main():
         step_name,
         "input",
     )
-    print(f"     Input Node ID: {input_node_id}") # Finished attaching step ID to input
+    print(f"     Input Node ID: {input_node_id}")  # Finished attaching step ID to input
 
     rootLogger.debug(f"Successfully saved: {input_object}")
 
@@ -183,7 +189,9 @@ def sub_main():
         step_name=step_name,
         contract_type="execution",
     )
-    print("{:>15}".format("ok")) # Finished loading execution  parameters from metastore
+    print(
+        "{:>15}".format("ok")
+    )  # Finished loading execution  parameters from metastore
 
     rootLogger.debug(f"Successfully loaded and validated execution: {execution_object}")
 
@@ -196,18 +204,25 @@ def sub_main():
         "execution",
     )
     rootLogger.debug(f"Successfully saved: {execution_object}")
-    print(f"      Execution Node ID: {execution_node_id}") # Finished attaching step ID to input
+    print(
+        f"      Execution Node ID: {execution_node_id}"
+    )  # Finished attaching step ID to input
 
-    print_left_message(f"Executing step ... ") 
+    # Branching between use step_execution.py or execution file.
+    execution_file = os.environ.get("INPUT_EXECUTION_FILE")
+
+    print_left_message("Executing step ... ")
     results_ml_object = execute_step(
+        execution_file,
         workflow_object,
         input_object,
         execution_object,
         step_name,
         parameters.GITHUB_RUN_ID,
     )
-    print("{:>15}".format("ok")) # Finished executing step
+    print("{:>15}".format("ok"))  # Finished executing step
 
+    # TODO: Need to add next and previous steps to attach_step_info
     print(f"Attaching step info to output for '{step_name}.output' ... ")
     output_node_id = ms.attach_step_info(
         results_ml_object,
@@ -216,7 +231,9 @@ def sub_main():
         step_name,
         "output",
     )
-    print(f"      Output Node ID: {output_node_id}") # Finished attaching step ID to output
+    print(
+        f"      Output Node ID: {output_node_id}"
+    )  # Finished attaching step ID to output
 
     dict_conversion = results_ml_object.dict_without_internal_variables()
 
@@ -254,7 +271,7 @@ def sub_main():
         f"::set-output name=output_raw::{results_ml_object.dict_without_internal_variables()}"
     )
 
-    print(f"Printing output ... \n \n")
+    print("Printing output ... \n \n")
     logger = setupLogger()
     output_message = ""
     output_message += f"{logger.print_and_log('output_raw', results_ml_object.dict_without_internal_variables())}\n"
@@ -269,15 +286,15 @@ def sub_main():
     output_message += f"{logger.print_and_log('log_node_id', log_node_id)}\n"
 
     rootLogger.debug(f"Complete output: \n {output_message}")
-    print("\n\n... finished printing output") # Finished printing output
+    print("\n\n... finished printing output")  # Finished printing output
 
-    print_left_message(f"Generating /output_message.txt ...")
+    print_left_message("Generating /output_message.txt ...")
     if is_docker():
         Path("/output_message.txt").write_text(output_message)
     else:
         fp = tempfile.TemporaryFile()
         fp.write(output_message.encode("utf-8"))
-    print("{:>15}".format("ok")) # Finished printing output
+    print("{:>15}".format("ok"))  # Finished printing output
 
 
 def is_docker():
@@ -288,8 +305,10 @@ def is_docker():
         and any("docker" in line for line in open(cgroup_path))
     )
 
+
 def print_left_message(msg):
-    print(msg.ljust(120), end = '')
+    print(msg.ljust(120), end="")
+
 
 def repr_uuid(dumper, uuid_obj):
     return YAML.ScalarNode("tag:yaml.org,2002:str", str(uuid_obj))
@@ -455,23 +474,68 @@ def load_contract_object(
 
 
 def execute_step(
+    execution_file: str,
     workflow_object: MLObject,
     input_object: MLObject,
     execution_object: MLObject,
     step_name,
     run_id,
 ):
-    step_execution_object = StepExecution(input_object, execution_object)
-    results_ml_object = step_execution_object.execute(
-        result_object_schema_type=workflow_object.steps[step_name].output.schema_type,
-        result_object_schema_version=workflow_object.steps[
-            step_name
-        ].output.schema_version,
-    )
 
-    if results_ml_object is None or not isinstance(results_ml_object, MLObject):
+    rootLogger = setupLogger().get_root_logger()
+
+    result_ml_object = None
+
+    if execution_file is None:
+        msg = "Did not find any value for INPUT_EXECUTION_FILE, using /src/step_execution.py"
+
+        print_left_message(msg)
+        rootLogger.debug("::debug::" + msg)
+
+        print("{:>15}".format("ok"))  # Finished loading from environment
+
+        step_execution_object = StepExecution(input_object, execution_object)
+        results_ml_object = step_execution_object.execute(
+            result_object_schema_type=workflow_object.steps[
+                step_name
+            ].output.schema_type,
+            result_object_schema_version=workflow_object.steps[
+                step_name
+            ].output.schema_version,
+        )
+
+    else:
+        # TODO: Critical error if variable set but file not found
+        msg = f"Executing '${execution_file}' (found in INPUT_EXECUTION_FILE env var)"
+
+        print_left_message(msg)
+        rootLogger.debug("::debug::" + msg)
+
+        execution_file_path = Path(execution_file)
+
+        if execution_file_path.exists() is False:
+            raise KnownException(
+                f"'{execution_file}' was provided as the file, but it does not appear to exist at {str(execution_file_path.resolve())} -- exiting."
+            )
+
+        # The below are used in the execution file
+        result_ml_object_schema_type = workflow_object.steps[  # noqa
+            step_name
+        ].output.schema_type
+        result_ml_object_schema_version = workflow_object.steps[  # noqa
+            step_name
+        ].output.schema_version
+        result_ml_object = exec(execution_file_path.read_text(), globals())
+
+        print("{:>15}".format("ok"))  # Finished executing step
+
+    if result_ml_object is None:
         raise KnownException(
-            "Execution failed to return an MLObject. Cannot save output."
+            "No value was assigned to the variable 'result_ml_object' -- exiting."
+        )
+    elif isinstance(result_ml_object, MLObject) is False:
+        raise KnownException(
+            "The variable 'result_ml_object' was not of type MLObject -- exiting."
         )
 
     results_ml_object.run_id = run_id

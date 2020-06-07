@@ -271,14 +271,35 @@ class test_main(unittest.TestCase):
 
     @patch.object(StepExecution, "__init__", return_value=None)
     @patch.object(StepExecution, "execute", return_value=None)
-    def test_return_no_result_object(self, *mock_step_execution):
+    def test_step_exection_return_no_result_object(self, *mock_step_execution):
         workflow_box = Box({"steps": {"FAKESTEP": {"output": {}}}})
         workflow_box.steps.FAKESTEP.output.schema_type = "FAKETYPE"
         workflow_box.steps.FAKESTEP.output.schema_version = "0.0.1"
         with self.assertRaises(KnownException) as context:
-            execute_step(workflow_box, None, None, "FAKESTEP", None)
+            execute_step(None, workflow_box, None, None, "FAKESTEP", None)
 
-        self.assertTrue("Cannot save output" in str(context.exception))
+        self.assertTrue("No value was assigned" in str(context.exception))
+
+    @patch.object(Path, "exists", return_value=True)
+    @patch.object(Path, "read_text", return_value="")
+    def test_step_exec_no_result_object(self, *mock_step_execution):
+        workflow_box = Box({"steps": {"FAKESTEP": {"output": {}}}})
+        workflow_box.steps.FAKESTEP.output.schema_type = "FAKETYPE"
+        workflow_box.steps.FAKESTEP.output.schema_version = "0.0.1"
+        with self.assertRaises(KnownException) as context:
+            execute_step('fakefile.py', workflow_box, None, None, "FAKESTEP", None)
+
+        self.assertTrue("No value was assigned" in str(context.exception))
+
+    @patch.object(Path, "exists", return_value=False)
+    def test_step_exec_no_file(self, *mock_step_execution):
+        workflow_box = Box({"steps": {"FAKESTEP": {"output": {}}}})
+        workflow_box.steps.FAKESTEP.output.schema_type = "FAKETYPE"
+        workflow_box.steps.FAKESTEP.output.schema_version = "0.0.1"
+        with self.assertRaises(KnownException) as context:
+            execute_step('fakefile.py', workflow_box, None, None, "FAKESTEP", None)
+
+        self.assertTrue("provided as the file" in str(context.exception))
 
     @patch.object(Path, "__init__", return_value=None)
     @patch.object(Path, "exists", return_value=False)

@@ -102,9 +102,12 @@ hang-closing = True
 # W503 - line break before binary operator
 
 # Specify a list of codes to `.
-ignore = E203, E266, E501, W503, F403, F401, E133, E0401
+ignore = E203, E266, E501, W503, F403, F401, E133, E0401, E402
 max-line-length = 79
 max-complexity = 18
+per-file-ignores =
+    src/exec_file.py:F821
+    tests/sample_exec_file.py:F821
 # Specify the list of error codes you wish Flake8 to report.
 select = B,C,E,F,W,T4,B9
 
