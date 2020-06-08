@@ -38,3 +38,14 @@ results_ml_object.model_source.servable_model.path = return_dict["model_source"]
 results_ml_object.serving_container_image.container_image_url = return_dict[
     "serving_container_image"
 ]["container_image_url"]
+
+# Execution metrics
+results_ml_object.execution_profile.system_memory_utilization = random()
+results_ml_object.execution_profile.network_traffic_in_bytes = randint(7e9, 9e10)
+results_ml_object.execution_profile.gpu_temperature = randint(70, 130)
+results_ml_object.execution_profile.disk_io_utilization = random()
+results_ml_object.execution_profile.gpu_percent_of_time_accessing_memory = random()
+results_ml_object.execution_profile.cpu_utilization = random()
+results_ml_object.execution_profile.gpu_utilization = random()
+results_ml_object.execution_profile.gpu_memory_allocation = random()
+

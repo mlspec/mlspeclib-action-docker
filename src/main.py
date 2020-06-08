@@ -529,7 +529,7 @@ def execute_step(
 
         print("{:>15}".format("ok"))  # Finished executing step
 
-    if results_ml_object is None:
+    if (results_ml_object is None) or (len(results_ml_object) == 0):
         raise KnownException(
             "No value was assigned to the variable 'results_ml_object' -- exiting."
         )
