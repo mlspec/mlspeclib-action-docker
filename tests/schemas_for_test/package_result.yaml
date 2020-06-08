@@ -87,3 +87,45 @@ serving_container_image:
       # container_store: (Optional) container_store name
       type: string
       required: False
+
+
+execution_profile:
+  type: nested
+  schema:
+    cpu_utilization:
+      description: "Shows the CPU utilization."
+      type: float
+      required: True
+    system_memory_utilization:
+      description: "Shows the system memory utilization."
+      type: float
+      required: True
+    disk_io_utilization:
+      description: "Shows the disk utilization."
+      type: float
+      required: True
+    network_traffic_in_bytes:
+      description: "TX/RX bytes of network traffic"
+      type: int
+      required: True
+    gpu_utilization:
+      description: "Percent of the time over the past sample period during which one or more kernels was executing on the GPU."
+      type: float
+      required: True
+    gpu_temperature:
+      description: "Temperature of the GPUs during the experiment."
+      type: float
+      required: True
+    gpu_percent_of_time_accessing_memory:
+      description: "Percent of the time over the past sample period during which GPU memory was being read or written"
+      type: float
+      required: True
+    gpu_memory_allocation:
+      description: "Percent of the GPU memory that used."
+      type: float
+      required: True
+    nvidia_metrics:
+      # https://github.com/nicolargo/nvidia-ml-py3/blob/master/pynvml.py
+      type: dict
+      required: False
+      empty: True

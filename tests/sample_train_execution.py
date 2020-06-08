@@ -20,3 +20,14 @@ results_ml_object.training_execution_id = return_dict["training_execution_id"]
 results_ml_object.accuracy = return_dict["accuracy"]
 results_ml_object.global_step = return_dict["global_step"]
 results_ml_object.loss = return_dict["loss"]
+
+# Execution metrics
+results_ml_object.execution_profile.system_memory_utilization = random()
+results_ml_object.execution_profile.network_traffic_in_bytes = randint(7e9, 9e10)
+results_ml_object.execution_profile.gpu_temperature = randint(70, 130)
+results_ml_object.execution_profile.disk_io_utilization = random()
+results_ml_object.execution_profile.gpu_percent_of_time_accessing_memory = random()
+results_ml_object.execution_profile.cpu_utilization = random()
+results_ml_object.execution_profile.gpu_utilization = random()
+results_ml_object.execution_profile.gpu_memory_allocation = random()
+

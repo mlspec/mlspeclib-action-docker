@@ -1,35 +1,41 @@
+mlspec_base_type:
+  # Base schema type that this extends
+  meta: base
+
 mlspec_schema_version:
   # Identifies the version of this schema
   meta: 9999.0.1
 
 mlspec_schema_type:
   # Identifies the type of this schema
-  meta: base
+  meta: training_results
 
 schema_version:
-  # Identifies version of MLSpec to use
+  # Identifies version of MLSpec to use to instantiate
   type: semver
   required: True
 
 schema_type:
-  # Identifies version of MLSpec to use
+  # Identifies type of MLSpec to use to instantiate
   type: allowed_schema_types
   required: True
 
-run_id:
-  # Unique identifier for the execution of the entire workflow (designed to tie all steps together)
-  type: uuid
+training_execution_id:
+  type: UUID
   required: True
 
-step_id:
-  # Unique identifier for the execution of a step
-  type: uuid
+accuracy:
+  type: float
   required: True
 
-run_date:
-  # Execution datetime of a step in UTC
-  type: datetime
+global_step:
+  type: float
   required: True
+
+loss:
+  type: float
+  required: True
+
 
 execution_profile:
   type: nested

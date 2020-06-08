@@ -18,3 +18,14 @@ results_ml_object.data_output_path = return_dict["data_output_path"]
 results_ml_object.data_statistics_path = return_dict["data_statistics_path"]
 results_ml_object.data_schemas_path = return_dict["data_schemas_path"]
 results_ml_object.feature_file_path = return_dict["feature_file_path"]
+
+# Execution metrics
+results_ml_object.execution_profile.system_memory_utilization = random()
+results_ml_object.execution_profile.network_traffic_in_bytes = randint(7e9, 9e10)
+results_ml_object.execution_profile.gpu_temperature = randint(70, 130)
+results_ml_object.execution_profile.disk_io_utilization = random()
+results_ml_object.execution_profile.gpu_percent_of_time_accessing_memory = random()
+results_ml_object.execution_profile.cpu_utilization = random()
+results_ml_object.execution_profile.gpu_utilization = random()
+results_ml_object.execution_profile.gpu_memory_allocation = random()
+

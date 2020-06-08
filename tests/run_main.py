@@ -46,6 +46,8 @@ os.environ["GITHUB_RUN_ID"] = str(uuid.uuid4())
 os.environ["GITHUB_WORKSPACE"] = str(str(Path.cwd().resolve()))
 os.environ["VSCODE_DEBUGGING"] = "True"
 
+os.environ["INPUT_EXECUTION_FILE"] = str(Path('tests/sample_process_data_execution.py').absolute())
+
 credentials_packed = parameters["INPUT_METASTORE_CREDENTIALS"]
 
 ms = Metastore(credentials_packed)
@@ -58,7 +60,7 @@ workflow_dict["run_id"] = str(uuid.uuid4())
 workflow_dict["step_id"] = str(uuid.uuid4())
 workflow_dict["run_date"] = datetime.datetime.now()
 
-MLSchema.append_schema_to_registry(Path("tests/schemas"))
+MLSchema.append_schema_to_registry(Path("tests/schemas_for_test"))
 
 (workflow_object, err) = MLObject.create_object_from_string(workflow_dict)
 if len(err) != 0:

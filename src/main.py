@@ -484,7 +484,7 @@ def execute_step(
 
     rootLogger = setupLogger().get_root_logger()
 
-    result_ml_object = None
+    results_ml_object = MLObject()
 
     if execution_file is None:
         msg = "Did not find any value for INPUT_EXECUTION_FILE, using /src/step_execution.py"
@@ -525,17 +525,17 @@ def execute_step(
         result_ml_object_schema_version = workflow_object.steps[  # noqa
             step_name
         ].output.schema_version
-        result_ml_object = exec(execution_file_path.read_text(), globals())
+        exec(execution_file_path.read_text(), globals(), locals())
 
         print("{:>15}".format("ok"))  # Finished executing step
 
-    if result_ml_object is None:
+    if results_ml_object is None:
         raise KnownException(
-            "No value was assigned to the variable 'result_ml_object' -- exiting."
+            "No value was assigned to the variable 'results_ml_object' -- exiting."
         )
-    elif isinstance(result_ml_object, MLObject) is False:
+    elif isinstance(results_ml_object, MLObject) is False:
         raise KnownException(
-            "The variable 'result_ml_object' was not of type MLObject -- exiting."
+            "The variable 'results_ml_object' was not of type MLObject -- exiting."
         )
 
     results_ml_object.run_id = run_id

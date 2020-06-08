@@ -1,0 +1,80 @@
+mlspec_base_type:
+  # Base schema type that this extends
+  meta: base
+
+mlspec_schema_version:
+  # Identifies the version of this schema
+  meta: 9999.0.1
+
+mlspec_schema_type:
+  # Identifies the type of this schema
+  meta: data_result
+
+schema_version:
+  # Identifies version of MLSpec to use to instantiate
+  type: semver
+  required: True
+
+schema_type:
+  type: string
+  required: True
+
+data_output_path:
+  type: path
+  required: True
+
+data_statistics_path:
+  type: path
+  required: True
+
+data_schemas_path:
+  # Name of the schema paths
+  type: path
+  required: True
+
+feature_file_path:
+  # Location of the feature file
+  type: path
+  required: True
+
+
+execution_profile:
+  type: nested
+  schema:
+    cpu_utilization:
+      description: "Shows the CPU utilization."
+      type: float
+      required: True
+    system_memory_utilization:
+      description: "Shows the system memory utilization."
+      type: float
+      required: True
+    disk_io_utilization:
+      description: "Shows the disk utilization."
+      type: float
+      required: True
+    network_traffic_in_bytes:
+      description: "TX/RX bytes of network traffic"
+      type: int
+      required: True
+    gpu_utilization:
+      description: "Percent of the time over the past sample period during which one or more kernels was executing on the GPU."
+      type: float
+      required: True
+    gpu_temperature:
+      description: "Temperature of the GPUs during the experiment."
+      type: float
+      required: True
+    gpu_percent_of_time_accessing_memory:
+      description: "Percent of the time over the past sample period during which GPU memory was being read or written"
+      type: float
+      required: True
+    gpu_memory_allocation:
+      description: "Percent of the GPU memory that used."
+      type: float
+      required: True
+    nvidia_metrics:
+      # https://github.com/nicolargo/nvidia-ml-py3/blob/master/pynvml.py
+      type: dict
+      required: False
+      empty: True

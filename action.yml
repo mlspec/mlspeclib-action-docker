@@ -1,5 +1,5 @@
 name: "MLSpec Action"
-description: "Sample Action Example: Processing Data"
+description: "MLSpec Action"
 author: "aronchick"
 inputs:
   METASTORE_CREDENTIALS:

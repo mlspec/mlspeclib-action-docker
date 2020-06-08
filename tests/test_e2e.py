@@ -62,7 +62,7 @@ class test_e2e(unittest.TestCase):
         (self.rootLogger, self._buffer) = setupLogger().get_loggers()
 
         MLSchema.populate_registry()
-        MLSchema.append_schema_to_registry(Path.cwd() / "tests" / "test_schemas")
+        MLSchema.append_schema_to_registry(Path.cwd() / "tests" / "schemas_for_test")
 
     def test_process_data(self):
         """
