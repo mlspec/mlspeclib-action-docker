@@ -107,7 +107,7 @@ max-line-length = 79
 max-complexity = 18
 per-file-ignores =
     src/exec_file.py:F821
-    tests/sample_exec_file.py:F821
+    tests/sample_*.py:F821
 # Specify the list of error codes you wish Flake8 to report.
 select = B,C,E,F,W,T4,B9
 

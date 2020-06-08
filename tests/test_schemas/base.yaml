@@ -1,0 +1,73 @@
+mlspec_schema_version:
+  # Identifies the version of this schema
+  meta: 9999.0.1
+
+mlspec_schema_type:
+  # Identifies the type of this schema
+  meta: base
+
+schema_version:
+  # Identifies version of MLSpec to use
+  type: semver
+  required: True
+
+schema_type:
+  # Identifies version of MLSpec to use
+  type: allowed_schema_types
+  required: True
+
+run_id:
+  # Unique identifier for the execution of the entire workflow (designed to tie all steps together)
+  type: uuid
+  required: True
+
+step_id:
+  # Unique identifier for the execution of a step
+  type: uuid
+  required: True
+
+run_date:
+  # Execution datetime of a step in UTC
+  type: datetime
+  required: True
+
+execution_profile:
+  type: nested
+  schema:
+    cpu_utilization:
+      description: "Shows the CPU utilization."
+      type: float
+      required: True
+    system_memory_utilization:
+      description: "Shows the system memory utilization."
+      type: float
+      required: True
+    disk_io_utilization:
+      description: "Shows the disk utilization."
+      type: float
+      required: True
+    network_traffic_in_bytes:
+      description: "TX/RX bytes of network traffic"
+      type: int
+      required: True
+    gpu_utilization:
+      description: "Percent of the time over the past sample period during which one or more kernels was executing on the GPU."
+      type: float
+      required: True
+    gpu_temperature:
+      description: "Temperature of the GPUs during the experiment."
+      type: float
+      required: True
+    gpu_percent_of_time_accessing_memory:
+      description: "Percent of the time over the past sample period during which GPU memory was being read or written"
+      type: float
+      required: True
+    gpu_memory_allocation:
+      description: "Percent of the GPU memory that used."
+      type: float
+      required: True
+    nvidia_metrics:
+      # https://github.com/nicolargo/nvidia-ml-py3/blob/master/pynvml.py
+      type: dict
+      required: False
+      empty: True

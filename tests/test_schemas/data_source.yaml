@@ -4,11 +4,11 @@ mlspec_base_type:
 
 mlspec_schema_version:
   # Identifies the version of this schema
-  meta: 999.0.1
+  meta: 9999.0.1
 
 mlspec_schema_type:
   # Identifies the type of this schema
-  meta: data_process_run
+  meta: data_source
 
 schema_version:
   # Identifies version of MLSpec to use to instantiate
@@ -19,30 +19,10 @@ schema_type:
   type: string
   required: True
 
-nodes:
-  type: int
-  required: True
-
-cpu_per_node:
-  type: int
-  required: True
-
-ram_per_node:
+source_id:
   type: string
   required: True
 
-gpu_required:
-  type: boolean
-  required: True
-
-output_root_path:
-  type: path
-  required: True
-
-base_image:
-  type: string
-  required: True
-
-machine_type:
-  type: string
+source_uri:
+  type: URI
   required: True

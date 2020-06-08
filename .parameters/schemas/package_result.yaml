@@ -29,6 +29,10 @@ tested_platforms:
   type: list_strings
   required: True
 
+package_size:
+  type: int
+  required: True
+
 model_source:
   # model_source: (Optional) - (Required if servable is true)
   type: nested

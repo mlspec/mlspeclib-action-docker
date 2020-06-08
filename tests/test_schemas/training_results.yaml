@@ -4,37 +4,34 @@ mlspec_base_type:
 
 mlspec_schema_version:
   # Identifies the version of this schema
-  meta: 999.0.1
+  meta: 9999.0.1
 
 mlspec_schema_type:
   # Identifies the type of this schema
-  meta: package_run
+  meta: training_results
 
 schema_version:
+  # Identifies version of MLSpec to use to instantiate
   type: semver
   required: True
 
 schema_type:
-  type: string
+  # Identifies type of MLSpec to use to instantiate
+  type: allowed_schema_types
   required: True
 
-model_source:
-  type: path
+training_execution_id:
+  type: UUID
   required: True
 
-container_registry:
-  type: URI
+accuracy:
+  type: float
   required: True
 
-agent-pool:
-  type: String
+global_step:
+  type: float
   required: True
 
-build-args:
-  type: List
-  required: True
-  empty: True
-
-secrets:
-  type: List
+loss:
+  type: float
   required: True

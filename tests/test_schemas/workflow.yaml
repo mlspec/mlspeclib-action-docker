@@ -4,11 +4,12 @@ mlspec_base_type:
 
 mlspec_schema_version:
   # Identifies the version of this schema
-  meta: 999.0.1
+  meta: 9999.0.1
 
 mlspec_schema_type:
   # Identifies the type of this schema
-  meta: data_source
+  meta: workflow
+  last: True
 
 schema_version:
   # Identifies version of MLSpec to use to instantiate
@@ -16,13 +17,15 @@ schema_version:
   required: True
 
 schema_type:
-  type: string
+  # Identifies type of MLSpec to use to instantiate
+  type: allowed_schema_types
   required: True
 
-source_id:
-  type: string
+workflow_version:
+  # Identifies version of this workflow
+  type: semver
   required: True
 
-source_uri:
-  type: URI
+steps:
+  type: workflow_steps
   required: True

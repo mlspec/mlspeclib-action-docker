@@ -1,0 +1,37 @@
+schema_type: workflow
+schema_version: 9999.0.1
+steps:
+  process_data:
+    input:
+      schema_type: data_source
+      schema_version: 9999.0.1
+    execution:
+      schema_type: data_process_run
+      schema_version: 9999.0.1
+    output:
+      schema_type: data_result
+      schema_version: 9999.0.1
+    next: train
+  train:
+    previous: process_data
+    input:
+      schema_type: data_result
+      schema_version: 9999.0.1
+    execution:
+      schema_type: training_run
+      schema_version: 9999.0.1
+    output:
+      schema_type: training_result
+      schema_version: 9999.0.1
+    next: package
+  package:
+    previous: train
+    input:
+      schema_type: training_result
+      schema_version: 9999.0.1
+    execution:
+      schema_type: package_run
+      schema_version: 9999.0.1
+    output:
+      schema_type: package_result
+      schema_version: 9999.0.1

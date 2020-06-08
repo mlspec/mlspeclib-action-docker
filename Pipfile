@@ -9,6 +9,7 @@ pylint = "*"
 black = "*"
 ipython = "*"
 flake8 = "*"
+rope = "*"
 
 [packages]
 pyyaml = "*"

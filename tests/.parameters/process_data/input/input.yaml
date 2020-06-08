@@ -1,0 +1,7 @@
+schema_version: 9999.0.1
+schema_type: data_source
+run_id: 6a9a5931-1c1d-47cc-aaf3-ad8b03f70575
+step_id: 433b4d99-042d-47c5-8c2f-6a4f5094510e
+run_date: 1970-01-08 00:00:00.00000
+source_id: 894b0239-e616-43fa-914b-de55894ad67d
+source_uri: 'https://data.vision.ee.ethz.ch/cvl/rrothe/imdb-wiki/'

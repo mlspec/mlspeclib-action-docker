@@ -4,28 +4,37 @@ mlspec_base_type:
 
 mlspec_schema_version:
   # Identifies the version of this schema
-  meta: 999.0.1
+  meta: 9999.0.1
 
 mlspec_schema_type:
   # Identifies the type of this schema
-  meta: workflow
-  last: True
+  meta: package_run
 
 schema_version:
-  # Identifies version of MLSpec to use to instantiate
   type: semver
   required: True
 
 schema_type:
-  # Identifies type of MLSpec to use to instantiate
-  type: allowed_schema_types
+  type: string
   required: True
 
-workflow_version:
-  # Identifies version of this workflow
-  type: semver
+model_source:
+  type: path
   required: True
 
-steps:
-  type: workflow_steps
+container_registry:
+  type: URI
+  required: True
+
+agent-pool:
+  type: String
+  required: True
+
+build-args:
+  type: List
+  required: True
+  empty: True
+
+secrets:
+  type: List
   required: True

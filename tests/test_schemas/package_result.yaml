@@ -4,11 +4,11 @@ mlspec_base_type:
 
 mlspec_schema_version:
   # Identifies the version of this schema
-  meta: 999.0.1
+  meta: 9999.0.1
 
 mlspec_schema_type:
   # Identifies the type of this schema
-  meta: serve
+  meta: package_results
 
 schema_version:
   # Identifies version of MLSpec to use to instantiate
@@ -27,6 +27,10 @@ servable:
 tested_platforms:
   #   tested_platforms (optional list): platform on which this model can served (current options: kubernetes, knative, seldon, wml, kfserving)
   type: list_strings
+  required: True
+
+package_size:
+  type: int
   required: True
 
 model_source:
