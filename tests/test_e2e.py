@@ -173,10 +173,14 @@ class test_e2e(unittest.TestCase):
         results_ml_object.run_id = uuid.uuid4()
 
         results_ml_object.execution_profile.system_memory_utilization = random()
-        results_ml_object.execution_profile.network_traffic_in_bytes = randint(7e9, 9e10)
+        results_ml_object.execution_profile.network_traffic_in_bytes = randint(
+            7e9, 9e10
+        )
         results_ml_object.execution_profile.gpu_temperature = randint(70, 130)
         results_ml_object.execution_profile.disk_io_utilization = random()
-        results_ml_object.execution_profile.gpu_percent_of_time_accessing_memory = random()
+        results_ml_object.execution_profile.gpu_percent_of_time_accessing_memory = (
+            random()
+        )
         results_ml_object.execution_profile.cpu_utilization = random()
         results_ml_object.execution_profile.gpu_utilization = random()
         results_ml_object.execution_profile.gpu_memory_allocation = random()
@@ -233,10 +237,14 @@ class test_e2e(unittest.TestCase):
         results_ml_object.run_id = uuid.uuid4()
 
         results_ml_object.execution_profile.system_memory_utilization = random()
-        results_ml_object.execution_profile.network_traffic_in_bytes = randint(7e9, 9e10)
+        results_ml_object.execution_profile.network_traffic_in_bytes = randint(
+            7e9, 9e10
+        )
         results_ml_object.execution_profile.gpu_temperature = randint(70, 130)
         results_ml_object.execution_profile.disk_io_utilization = random()
-        results_ml_object.execution_profile.gpu_percent_of_time_accessing_memory = random()
+        results_ml_object.execution_profile.gpu_percent_of_time_accessing_memory = (
+            random()
+        )
         results_ml_object.execution_profile.cpu_utilization = random()
         results_ml_object.execution_profile.gpu_utilization = random()
         results_ml_object.execution_profile.gpu_memory_allocation = random()
@@ -249,6 +257,7 @@ class test_e2e(unittest.TestCase):
                 step_name,
             )
         )
+
 
 if __name__ == "__main__":
     unittest.main()

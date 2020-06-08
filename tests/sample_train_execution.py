@@ -30,4 +30,3 @@ results_ml_object.execution_profile.gpu_percent_of_time_accessing_memory = rando
 results_ml_object.execution_profile.cpu_utilization = random()
 results_ml_object.execution_profile.gpu_utilization = random()
 results_ml_object.execution_profile.gpu_memory_allocation = random()
-
