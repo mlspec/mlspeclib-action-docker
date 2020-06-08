@@ -31,8 +31,12 @@ RUN mkdir /src
 WORKDIR /src
 
 COPY .parameters/ .parameters
-
 COPY ./src/. /src/
 
+COPY integration/.parameters/schemas /src/parameters/test_schemas
+COPY step_execution.py /src
+COPY integration/container_debugging.sh /src
+COPY utils/utils.py /src/utils/utils.py
+RUN touch /src/utils/__init__.py
 
 ENTRYPOINT ["/src/entrypoint.sh"]
