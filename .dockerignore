@@ -16,5 +16,7 @@ src/__*
 #####
 !requirements.txt
 !src/*.py
+!src/utils/*.py
 !src/*.sh
 !.parameters
+!tests/schemas_for_test
