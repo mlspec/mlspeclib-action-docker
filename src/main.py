@@ -212,6 +212,7 @@ def sub_main():
     execution_file = os.environ.get("INPUT_EXECUTION_FILE")
 
     print_left_message("Executing step ... ")
+    print("{:>15}".format("ok"))  # Starting executing step
     results_ml_object = execute_step(
         execution_file,
         workflow_object,
@@ -220,7 +221,8 @@ def sub_main():
         step_name,
         parameters.GITHUB_RUN_ID,
     )
-    print("{:>15}".format("ok"))  # Finished executing step
+    print_left_message("Finished executing step ... ")
+    print("{:>15}".format("ok"))  # Starting executing step
 
     # TODO: Need to add next and previous steps to attach_step_info
     print(f"Attaching step info to output for '{step_name}.output' ... ")
