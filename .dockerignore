@@ -11,7 +11,6 @@
 *
 mlspeclib-docker
 tests
-src/__*
 
 #####
 !requirements.txt
